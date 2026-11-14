@@ -135,7 +135,8 @@ export const ResidanatEmdAnnalesViews: React.FC<ResidanatEmdAnnalesViewsProps> =
 
   // 1. RÉSIDANAT HUB
   if (mode === 'residanat') {
-    const curatedCount = allQuestions.filter((q) => q.sourceType !== 'IA_PEDAGOGIQUE').length;
+    const curatedCount = allQuestions.filter((q) => q.sourceType === 'REFERENCE_PEDAGOGIQUE').length;
+    const archiveCount = allQuestions.filter((q) => q.sourceType === 'ARCHIVE_VERIFIEE' && (q.reference?.startsWith('https://') || q.reference?.startsWith('http://')) && Number.isInteger(q.examYear) && Number.isInteger(q.sourcePage) && (q.sourcePage ?? 0) > 0 && Boolean(q.university) && Boolean(q.sourceQuestionNumber?.trim())).length;
     const aiCount = allQuestions.filter((q) => q.sourceType === 'IA_PEDAGOGIQUE').length;
 
     return (
@@ -150,8 +151,8 @@ export const ResidanatEmdAnnalesViews: React.FC<ResidanatEmdAnnalesViewsProps> =
                 Préparation Complète au Résidanat de Médecine
               </h1>
               <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                Banque vérifiée de <span className="font-mono font-semibold tabular-nums">{curatedCount}</span> QCM documentés couvrant 22 spécialités médicales, chirurgicales et fondamentales
-                {aiCount > 0 ? ` (+ ${aiCount} QCM IA sauvegardés localement)` : ''}. Chaque question inclut une correction scientifique complète et l’analyse des distracteurs.
+                Base pédagogique hors-ligne : <span className="font-mono font-semibold tabular-nums">{curatedCount}</span> QCM d’entraînement couvrant 22 spécialités. Annales originales vérifiées : <span className="font-mono font-semibold tabular-nums">{archiveCount}</span> question(s) avec document, page et numéro contrôlés.
+                {aiCount > 0 ? ` (+ ${aiCount} QCM générés par IA, clairement identifiés)` : ''}.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -194,9 +195,9 @@ export const ResidanatEmdAnnalesViews: React.FC<ResidanatEmdAnnalesViewsProps> =
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-slate-100 dark:border-slate-800">
             <div>
-              <p className="text-xs text-slate-500 dark:text-slate-400">QCM vérifiés hors-ligne</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Annales originales vérifiées</p>
               <p className="text-xl font-bold font-mono tabular-nums text-slate-900 dark:text-slate-100">
-                {allQuestions.length}
+                {archiveCount}
               </p>
             </div>
             <div>

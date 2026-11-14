@@ -1,0 +1,8 @@
+{
+  "name": "MED DZ",
+  "description": "Application médicale algérienne hors-ligne pour les étudiants en médecine (1ère à 7ème année) et la préparation au concours national de Résidanat et aux EMD.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

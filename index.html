@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MED DZ — Plateforme Médicale Algérienne</title>
+    <meta
+      name="description"
+      content="Plateforme médicale algérienne hors-ligne pour les étudiants en médecine (1ère à 7ème année), les EMD et la préparation au concours de Résidanat."
+    />
+    <meta property="og:title" content="MED DZ — Plateforme Médicale Algérienne" />
+    <meta
+      property="og:description"
+      content="Cours médicaux (1ère à 7ème année), banque QCM Résidanat, annales 2002-2025, EMD, cas cliniques, outils médicaux et résumés intelligents."
+    />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#0B63CE" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="MED DZ" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cairo:wght@500;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&family=IBM+Plex+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 antialiased">
+    <div id="root"></div>
+    <script>
+      (function () {
+        function showFallbackError(title, detail) {
+          var text = String(detail || '');
+          if (/WebSocket/i.test(text)) return;
+          var root = document.getElementById('root');
+          if (!root || root.childElementCount > 0) return;
+          root.innerHTML =
+            '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;font-family:system-ui,-apple-system,sans-serif;background:#f8fafc;color:#0f172a;">' +
+              '<div style="max-width:480px;width:100%;background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:24px;">' +
+                '<h1 style="margin:0 0 8px;font-size:18px;font-weight:700;">' + title + '</h1>' +
+                '<p style="margin:0 0 16px;font-size:14px;color:#475569;line-height:1.5;">' + text + '</p>' +
+                '<button onclick="window.location.reload()" style="padding:8px 16px;border:none;border-radius:8px;background:#0b63ce;color:#fff;font-size:13px;font-weight:600;cursor:pointer;">Recharger MED DZ</button>' +
+              '</div>' +
+            '</div>';
+        }
+        window.addEventListener('error', function (e) {
+          showFallbackError('MED DZ — Erreur de chargement', e && (e.message || (e.error && e.error.message)) || 'Échec du chargement du module principal.');
+        });
+        window.addEventListener('unhandledrejection', function (e) {
+          var msg = e && e.reason && (e.reason.message || String(e.reason));
+          if (msg) showFallbackError('MED DZ — Erreur d’initialisation', msg);
+        });
+        if ('serviceWorker' in navigator && (location.hostname === 'localhost' || location.hostname.indexOf('ais-dev-') === 0)) {
+          navigator.serviceWorker.getRegistrations().then(function (regs) {
+            regs.forEach(function (r) {
+              if (r.active && r.active.scriptURL && r.active.scriptURL.indexOf('dev-sw.js') !== -1) {
+                r.unregister();
+              }
+            });
+          }).catch(function () {});
+        }
+      })();
+    </script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

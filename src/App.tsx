@@ -468,6 +468,7 @@ export default function App() {
 
   const handleExportBackup = () => {
     const payload = {
+      schemaVersion: 1,
       exportedAt: new Date().toISOString(),
       app: 'MED DZ',
       settings,
@@ -477,6 +478,7 @@ export default function App() {
       favorites,
       aiNotes,
       customQuestions,
+      notifications,
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -485,6 +487,72 @@ export default function App() {
     a.download = `med-dz-sauvegarde-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleImportBackup = async (file: File) => {
+    try {
+      const parsed: unknown = JSON.parse(await file.text());
+      if (!parsed || typeof parsed !== 'object') {
+        throw new Error('Format de fichier invalide');
+      }
+      const backup = parsed as {
+        app?: string;
+        settings?: AppSettings;
+        progress?: UserProgressState;
+        sessions?: StudySessionRecord[];
+        wrongAnswers?: WrongAnswerEntry[];
+        favorites?: FavoriteEntry[];
+        aiNotes?: SavedAINote[];
+        customQuestions?: QCMQuestion[];
+        notifications?: ArabicNotificationLog[];
+      };
+
+      if (
+        backup.app !== 'MED DZ' ||
+        !backup.settings ||
+        !backup.progress ||
+        !Array.isArray(backup.sessions) ||
+        !Array.isArray(backup.wrongAnswers) ||
+        !Array.isArray(backup.favorites)
+      ) {
+        throw new Error('Cette sauvegarde MED DZ est incomplète ou incompatible');
+      }
+      if (
+        !['light', 'dark'].includes(backup.settings.theme) ||
+        !Array.isArray(backup.progress.dailyHistory) ||
+        !Array.isArray(backup.progress.completedLessonIds) ||
+        !Array.isArray(backup.progress.completedCaseIds)
+      ) {
+        throw new Error('Les données de profil ou de progression sont invalides');
+      }
+
+      const restored = {
+        settings: backup.settings,
+        progress: backup.progress,
+        sessions: backup.sessions,
+        wrongAnswers: backup.wrongAnswers,
+        favorites: backup.favorites,
+        aiNotes: Array.isArray(backup.aiNotes) ? backup.aiNotes : [],
+        customQuestions: Array.isArray(backup.customQuestions) ? backup.customQuestions : [],
+        notifications: Array.isArray(backup.notifications) ? backup.notifications : [],
+      };
+
+      await medDzDb.replaceAllData(restored);
+      setSettings(restored.settings);
+      setProgress(restored.progress);
+      setSessions(restored.sessions);
+      setWrongAnswers(restored.wrongAnswers);
+      setFavorites(restored.favorites);
+      setAiNotes(restored.aiNotes);
+      setCustomQuestions(restored.customQuestions);
+      setNotifications(restored.notifications);
+      setActiveSession(null);
+      setActiveArabicBanner(null);
+      window.alert('Sauvegarde MED DZ restaurée avec succès.');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Erreur inconnue';
+      window.alert(`Impossible de restaurer la sauvegarde : ${message}`);
+    }
   };
 
   const handleResetProgress = async () => {
@@ -900,6 +968,7 @@ export default function App() {
               notifications={notifications}
               onTriggerArabicTestNotification={triggerArabicNotification}
               onExportBackup={handleExportBackup}
+              onImportBackup={handleImportBackup}
               onResetProgress={handleResetProgress}
               pwaInstall={pwaInstall}
               onNavigate={handleNavigate}

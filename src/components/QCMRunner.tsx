@@ -21,6 +21,22 @@ interface QCMRunnerProps {
   onExit: () => void;
 }
 
+function restoreSessionClock(session: StudySessionRecord): StudySessionRecord {
+  if (session.completedAt || session.timerSecondsTotal <= 0) return session;
+
+  const lastSavedAt = Date.parse(session.updatedAt);
+  if (!Number.isFinite(lastSavedAt)) return session;
+
+  const elapsedSeconds = Math.max(0, Math.floor((Date.now() - lastSavedAt) / 1000));
+  if (elapsedSeconds === 0) return session;
+
+  return {
+    ...session,
+    timerSecondsRemaining: Math.max(0, session.timerSecondsRemaining - elapsedSeconds),
+    updatedAt: new Date().toISOString(),
+  };
+}
+
 function formatTimer(totalSec: number): string {
   const safe = Math.max(0, Math.floor(totalSec));
   const h = Math.floor(safe / 3600);
@@ -41,12 +57,12 @@ export const QCMRunner: React.FC<QCMRunnerProps> = ({
   onRecordAnswer,
   onExit,
 }) => {
-  const [localSession, setLocalSession] = useState<StudySessionRecord>(session);
+  const [localSession, setLocalSession] = useState<StudySessionRecord>(() => restoreSessionClock(session));
   const [showNavGrid, setShowNavGrid] = useState(false);
   const finalizedSessionRef = useRef<string | null>(null);
 
   useEffect(() => {
-    setLocalSession(session);
+    setLocalSession(restoreSessionClock(session));
   }, [session.id]);
 
   // Countdown timer when timerSecondsTotal > 0 and session not completed

@@ -17,6 +17,7 @@ import {
   Search,
   Settings,
   Sparkles,
+  MessageCircle,
   Stethoscope,
   Sun,
   WifiOff,
@@ -32,6 +33,8 @@ import { QCMRunner } from './components/QCMRunner';
 import { ResidanatEmdAnnalesViews } from './components/ResidanatEmdAnnalesViews';
 import { ClinicalCasesView, MedicalToolsView } from './components/ClinicalCasesAndToolsViews';
 import { SmartSummariesView } from './components/SmartSummariesView';
+import { AIStudyAssistantView } from './components/AIStudyAssistantView';
+import { ResidencyUniversityArchivesView } from './components/ResidencyUniversityArchivesView';
 import { CLINICAL_CASES } from './data/clinical_cases';
 import { MEDICAL_LESSONS } from './data/curriculum';
 import { CURATED_QCMS } from './data/qcm_index';
@@ -68,6 +71,7 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'annales', label: 'Annales et examens précédents', group: 'Principal', icon: Archive },
   { id: 'cours', label: 'Cours médicaux', group: 'Principal', icon: BookOpen },
   { id: 'resumes', label: 'Résumés intelligents', group: 'Principal', icon: Sparkles },
+  { id: 'assistant-ia', label: 'Assistant IA médical', group: 'Principal', icon: MessageCircle },
   { id: 'cas-cliniques', label: 'Cas cliniques', group: 'Principal', icon: Stethoscope },
 
   // Années 1-7
@@ -790,6 +794,8 @@ export default function App() {
               }}
               onToggleFavoriteNote={handleToggleFavoriteNote}
             />
+          ) : activeSection === 'assistant-ia' ? (
+            <AIStudyAssistantView />
           ) : activeSection === 'resumes' ? (
             <SmartSummariesView
               initialTopic={aiPrefill.topic}
@@ -807,10 +813,18 @@ export default function App() {
               favoriteIds={favoriteIds}
               onToggleFavoriteNote={handleToggleFavoriteNote}
             />
+          ) : activeSection === 'annales' ? (
+            <ResidencyUniversityArchivesView
+              allQuestions={allQuestions}
+              onStartSession={handleStartSession}
+              onAddAIQuestions={async (qs) => {
+                setCustomQuestions((prev) => [...qs, ...prev]);
+                await medDzDb.saveCustomQuestions(qs);
+              }}
+            />
           ) : activeSection === 'residanat' ||
             activeSection === 'qcm' ||
-            activeSection === 'emd' ||
-            activeSection === 'annales' ? (
+            activeSection === 'emd' ? (
             <ResidanatEmdAnnalesViews
               mode={activeSection}
               allQuestions={allQuestions}

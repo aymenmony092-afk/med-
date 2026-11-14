@@ -268,7 +268,9 @@ export const medDzDb = {
   },
   saveNotification: (notif: ArabicNotificationLog) => putStoreItem('notifications', notif),
 
-  replaceAllData,\n\n  resetProgressAndUserData: async () => {
+  replaceAllData,
+
+  resetProgressAndUserData: async () => {
     await setKV('progress', DEFAULT_PROGRESS);
     await clearStore('sessions');
     await clearStore('wrongAnswers');

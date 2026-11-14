@@ -141,6 +141,10 @@ export const QCMRunner: React.FC<QCMRunnerProps> = ({
   const currentQuestion = questions[localSession.currentIndex];
   const answeredCount = Object.keys(localSession.answers).length;
   const correctCount = questions.filter((q) => localSession.answers[q.id] === q.correctIndex).length;
+  const incorrectAnsweredCount = questions.filter(
+    (q) => localSession.answers[q.id] !== undefined && localSession.answers[q.id] !== q.correctIndex
+  ).length;
+  const unansweredCount = Math.max(0, questions.length - answeredCount);
 
   const handleSelectChoice = (choiceIdx: number) => {
     if (!currentQuestion || localSession.completedAt) return;
@@ -209,7 +213,11 @@ export const QCMRunner: React.FC<QCMRunnerProps> = ({
 
   const handleRestartWrongOnly = () => {
     const wrongIds = questions
-      .filter((q) => localSession.answers[q.id] !== q.correctIndex)
+      .filter(
+        (q) =>
+          localSession.answers[q.id] !== undefined &&
+          localSession.answers[q.id] !== q.correctIndex
+      )
       .map((q) => q.id);
     if (wrongIds.length === 0) return;
     const restarted: StudySessionRecord = {
@@ -315,17 +323,18 @@ export const QCMRunner: React.FC<QCMRunnerProps> = ({
                 Score : {localSession.scorePercent ?? computeScore(localSession)} % ({correctCount}/{questions.length})
               </h3>
               <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-                Vous pouvez parcourir chaque question ci-dessous pour consulter les explications scientifiques détaillées.
+                {answeredCount} répondues · {unansweredCount} sans réponse · {incorrectAnsweredCount} incorrectes.
+                Vous pouvez parcourir chaque question pour consulter les explications scientifiques détaillées.
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              {correctCount < questions.length && (
+              {incorrectAnsweredCount > 0 && (
                 <button
                   onClick={handleRestartWrongOnly}
                   className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-teal-600 text-white text-sm font-medium hover:bg-teal-700 whitespace-nowrap"
                 >
                   <RotateCcw className="w-4 h-4" />
-                  Refaire mes erreurs ({questions.length - correctCount})
+                  Refaire mes erreurs ({incorrectAnsweredCount})
                 </button>
               )}
               <button

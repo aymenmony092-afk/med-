@@ -1,0 +1,46 @@
+name: Initialize Neon database
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  migrate:
+    name: Apply MED DZ PostgreSQL schema
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Verify database secret
+        env:
+          DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::error::Add NEON_DATABASE_URL in repository Actions secrets before running this workflow."
+            exit 1
+          fi
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes postgresql-client
+      - name: Apply schema
+        env:
+          DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
+        run: |
+          psql "$DATABASE_URL" \
+            --set=ON_ERROR_STOP=1 \
+            --file=database/schema.sql
+      - name: Verify tables and views
+        env:
+          DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
+        run: |
+          psql "$DATABASE_URL" --no-psqlrc --tuples-only --no-align \
+            --command="SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_name IN ('app_users','medical_documents','document_ai_events','document_chat_messages') ORDER BY table_name;" \
+            | tee /tmp/med-dz-tables.txt
+          test "$(wc -l < /tmp/med-dz-tables.txt)" -eq 4
+          psql "$DATABASE_URL" --no-psqlrc --tuples-only --no-align \
+            --command="SELECT table_name FROM information_schema.views WHERE table_schema='public' AND table_name IN ('owner_account_overview','owner_usage_summary') ORDER BY table_name;" \
+            | tee /tmp/med-dz-views.txt
+          test "$(wc -l < /tmp/med-dz-views.txt)" -eq 2

@@ -68,7 +68,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
               Plateforme Algérienne d’Études Médicales & Préparation au Résidanat
             </h1>
             <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl">
-              Révisez le programme complet de la 1ère à la 7ème année, entraînez-vous sur des QCM pédagogiques avec corrections détaillées et consultez les annales originales uniquement lorsque leur source est vérifiée et résolvez des cas cliniques hors-ligne.
+              Révisez le programme complet de la 1ère à la 7ème année, entraînez-vous sur des QCM pédagogiques avec corrections détaillées et consultez les annales originales lorsque تكون مصادرها موثقة، et résolvez des cas cliniques hors-ligne.
             </p>
           </div>
 
@@ -119,7 +119,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
             {allQuestions.length} questions
           </p>
           <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
-            Annales originales vérifiées : {allQuestions.filter((q) => q.sourceType === 'ARCHIVE_VERIFIEE' && Number.isInteger(q.examYear) && Number.isInteger(q.sourcePage) && (q.sourcePage ?? 0) > 0 && Boolean(q.sourceQuestionNumber?.trim())).length}
+            Annales originales vérifiées : {allQuestions.filter((q) => q.sourceType === 'ARCHIVE_VERIFIEE' && (q.reference?.startsWith('https://') || q.reference?.startsWith('http://')) && Boolean(q.university) && Number.isInteger(q.examYear) && Number.isInteger(q.sourcePage) && (q.sourcePage ?? 0) > 0 && Boolean(q.sourceQuestionNumber?.trim())).length}
           </p>
         </div>
         <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">

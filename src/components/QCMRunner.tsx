@@ -456,7 +456,7 @@ export const QCMRunner: React.FC<QCMRunnerProps> = ({
         {/* Scientific Explanation */}
         {isRevealed && (
           <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 p-5 space-y-3">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                 Correction scientifique détaillée
               </span>
@@ -464,6 +464,14 @@ export const QCMRunner: React.FC<QCMRunnerProps> = ({
                 Réponse juste : {String.fromCharCode(65 + currentQuestion.correctIndex)}
               </span>
             </div>
+            <p className="text-xs font-medium text-slate-600 dark:text-slate-300">
+              Statut du corrigé : {
+                currentQuestion.correctionStatus === 'OFFICIELLE' ? 'Officiel' :
+                currentQuestion.correctionStatus === 'VERIFIEE' ? 'Vérifié' :
+                currentQuestion.correctionStatus === 'PROPOSEE' ? 'Proposé — à confirmer' :
+                'Non vérifié — ne pas considérer comme corrigé officiel'
+              }
+            </p>
             <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
               {currentQuestion.explanation}
             </p>

@@ -57,6 +57,22 @@ export const QCMRunner: React.FC<QCMRunnerProps> = ({
         if (prev.completedAt) return prev;
         const nextRemaining = Math.max(0, prev.timerSecondsRemaining - 1);
         if (nextRemaining === 0) {
+          // A timed exam must update the same learning statistics as a manual finish.
+          // In immediate-feedback mode answers were already recorded when selected.
+          if (!prev.immediateFeedback) {
+            for (const questionId of prev.questionIds) {
+              const question = questionsMap[questionId];
+              const selectedIndex = prev.answers[questionId];
+              if (question && selectedIndex !== undefined) {
+                onRecordAnswer(
+                  question,
+                  selectedIndex,
+                  selectedIndex === question.correctIndex,
+                  25
+                );
+              }
+            }
+          }
           const score = computeScore(prev);
           const finished: StudySessionRecord = {
             ...prev,

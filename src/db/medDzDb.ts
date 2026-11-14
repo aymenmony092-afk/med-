@@ -170,6 +170,59 @@ async function clearStore(storeName: string): Promise<void> {
   }
 }
 
+async function replaceAllData(data: {
+  settings: AppSettings;
+  progress: UserProgressState;
+  sessions: StudySessionRecord[];
+  wrongAnswers: WrongAnswerEntry[];
+  favorites: FavoriteEntry[];
+  aiNotes: SavedAINote[];
+  customQuestions: QCMQuestion[];
+  notifications: ArabicNotificationLog[];
+}): Promise<void> {
+  const db = await openDatabase();
+  const storeNames = ['kv', 'sessions', 'wrongAnswers', 'favorites', 'aiNotes', 'customQuestions', 'notifications'];
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(storeNames, 'readwrite');
+    const kv = tx.objectStore('kv');
+    kv.put({ key: 'settings', value: data.settings });
+    kv.put({ key: 'progress', value: data.progress });
+
+    const collections: Record<string, unknown[]> = {
+      sessions: data.sessions,
+      wrongAnswers: data.wrongAnswers,
+      favorites: data.favorites,
+      aiNotes: data.aiNotes,
+      customQuestions: data.customQuestions,
+      notifications: data.notifications,
+    };
+    for (const [storeName, items] of Object.entries(collections)) {
+      const store = tx.objectStore(storeName);
+      store.clear();
+      for (const item of items) store.put(item);
+    }
+
+    tx.oncomplete = () => {
+      db.close();
+      try {
+        localStorage.setItem('med_dz_settings', JSON.stringify(data.settings));
+        localStorage.setItem('med_dz_progress', JSON.stringify(data.progress));
+      } catch {
+        // IndexedDB remains the primary durable store.
+      }
+      resolve();
+    };
+    tx.onerror = () => {
+      db.close();
+      reject(tx.error || new Error('Échec de restauration de la sauvegarde'));
+    };
+    tx.onabort = () => {
+      db.close();
+      reject(tx.error || new Error('Restauration annulée'));
+    };
+  });
+}
+
 export const medDzDb = {
   getSettings: () => getKV<AppSettings>('settings', DEFAULT_SETTINGS),
   saveSettings: (settings: AppSettings) => setKV('settings', settings),
@@ -215,7 +268,7 @@ export const medDzDb = {
   },
   saveNotification: (notif: ArabicNotificationLog) => putStoreItem('notifications', notif),
 
-  resetProgressAndUserData: async () => {
+  replaceAllData,\n\n  resetProgressAndUserData: async () => {
     await setKV('progress', DEFAULT_PROGRESS);
     await clearStore('sessions');
     await clearStore('wrongAnswers');

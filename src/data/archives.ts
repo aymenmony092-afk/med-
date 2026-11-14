@@ -8,7 +8,7 @@ export const HISTORICAL_ARCHIVES: HistoricalExamRecord[] = [
     specialty: 'Épreuve Transversale Préclinique & Clinique',
     examType: 'Résidanat',
     questionCount: 15,
-    availability: 'DISPONIBLE_SERIE_VERIFIEE',
+    availability: 'DISPONIBLE_SERIE_PEDAGOGIQUE',
     linkedQuestionIds: [
       'RES-CARD-001', 'RES-CARD-002', 'RES-PNEU-001', 'RES-PNEU-003', 'RES-NEUR-001',
       'RES-GAST-001', 'RES-NEPH-001', 'RES-ENDO-001', 'RES-HEM-001', 'RES-INF-001',
@@ -24,7 +24,7 @@ export const HISTORICAL_ARCHIVES: HistoricalExamRecord[] = [
     specialty: 'Sciences Fondamentales (Anatomie, Physiologie, Biochimie, Pharmacologie)',
     examType: 'Résidanat',
     questionCount: 12,
-    availability: 'DISPONIBLE_SERIE_VERIFIEE',
+    availability: 'DISPONIBLE_SERIE_PEDAGOGIQUE',
     linkedQuestionIds: [
       'RES-ANAT-001', 'RES-ANAT-003', 'RES-ANAT-005', 'RES-PHYS-001',
       'RES-PHYS-002', 'RES-PHYS-004', 'RES-BIOC-001', 'RES-BIOC-002',
@@ -40,7 +40,7 @@ export const HISTORICAL_ARCHIVES: HistoricalExamRecord[] = [
     specialty: 'Pathologie Médicale & Urgences',
     examType: 'Résidanat',
     questionCount: 12,
-    availability: 'DISPONIBLE_SERIE_VERIFIEE',
+    availability: 'DISPONIBLE_SERIE_PEDAGOGIQUE',
     linkedQuestionIds: [
       'RES-CARD-003', 'RES-CARD-006', 'RES-PNEU-002', 'RES-PNEU-004',
       'RES-NEUR-003', 'RES-GAST-002', 'RES-NEPH-002', 'RES-ENDO-002',
@@ -56,7 +56,7 @@ export const HISTORICAL_ARCHIVES: HistoricalExamRecord[] = [
     specialty: 'Mère-Enfant & Chirurgie',
     examType: 'Résidanat',
     questionCount: 10,
-    availability: 'DISPONIBLE_SERIE_VERIFIEE',
+    availability: 'DISPONIBLE_SERIE_PEDAGOGIQUE',
     linkedQuestionIds: [
       'RES-PED-002', 'RES-PED-003', 'RES-PED-004', 'RES-PED-005',
       'RES-GYN-002', 'RES-GYN-003', 'RES-GYN-004',
@@ -73,7 +73,7 @@ export const HISTORICAL_ARCHIVES: HistoricalExamRecord[] = [
     examType: 'EMD',
     yearLevel: 1,
     questionCount: 10,
-    availability: 'DISPONIBLE_SERIE_VERIFIEE',
+    availability: 'DISPONIBLE_SERIE_PEDAGOGIQUE',
     linkedQuestionIds: [
       'RES-ANAT-001', 'RES-ANAT-004', 'RES-BIOC-001', 'RES-BIOC-006',
       'RES-HIST-001', 'RES-HIST-002', 'RES-HIST-003',
@@ -89,7 +89,7 @@ export const HISTORICAL_ARCHIVES: HistoricalExamRecord[] = [
     examType: 'EMD',
     yearLevel: 2,
     questionCount: 10,
-    availability: 'DISPONIBLE_SERIE_VERIFIEE',
+    availability: 'DISPONIBLE_SERIE_PEDAGOGIQUE',
     linkedQuestionIds: [
       'RES-ANAT-002', 'RES-ANAT-003', 'RES-ANAT-005', 'RES-ANAT-006',
       'RES-PHYS-001', 'RES-PHYS-002', 'RES-PHYS-003', 'RES-PHYS-004',
@@ -105,7 +105,7 @@ export const HISTORICAL_ARCHIVES: HistoricalExamRecord[] = [
     examType: 'EMD',
     yearLevel: 3,
     questionCount: 12,
-    availability: 'DISPONIBLE_SERIE_VERIFIEE',
+    availability: 'DISPONIBLE_SERIE_PEDAGOGIQUE',
     linkedQuestionIds: [
       'RES-PHAR-001', 'RES-PHAR-002', 'RES-PHAR-004',
       'RES-MICR-001', 'RES-MICR-002', 'RES-MICR-003',
@@ -122,7 +122,7 @@ export const HISTORICAL_ARCHIVES: HistoricalExamRecord[] = [
     examType: 'EMD',
     yearLevel: 4,
     questionCount: 12,
-    availability: 'DISPONIBLE_SERIE_VERIFIEE',
+    availability: 'DISPONIBLE_SERIE_PEDAGOGIQUE',
     linkedQuestionIds: [
       'RES-CARD-001', 'RES-CARD-004', 'RES-CARD-005',
       'RES-PNEU-001', 'RES-PNEU-003', 'RES-GAST-001',
@@ -139,7 +139,7 @@ export const HISTORICAL_ARCHIVES: HistoricalExamRecord[] = [
     examType: 'EMD',
     yearLevel: 5,
     questionCount: 12,
-    availability: 'DISPONIBLE_SERIE_VERIFIEE',
+    availability: 'DISPONIBLE_SERIE_PEDAGOGIQUE',
     linkedQuestionIds: [
       'RES-NEUR-001', 'RES-NEUR-002', 'RES-NEUR-004',
       'RES-ENDO-001', 'RES-ENDO-003', 'RES-ENDO-004',
@@ -156,7 +156,7 @@ export const HISTORICAL_ARCHIVES: HistoricalExamRecord[] = [
     examType: 'EMD',
     yearLevel: 6,
     questionCount: 12,
-    availability: 'DISPONIBLE_SERIE_VERIFIEE',
+    availability: 'DISPONIBLE_SERIE_PEDAGOGIQUE',
     linkedQuestionIds: [
       'RES-HEM-001', 'RES-HEM-002', 'RES-HEM-006',
       'RES-CHIR-001', 'RES-CHIR-002', 'RES-CHIR-004',

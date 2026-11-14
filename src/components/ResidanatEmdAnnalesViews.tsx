@@ -367,7 +367,7 @@ export const ResidanatEmdAnnalesViews: React.FC<ResidanatEmdAnnalesViewsProps> =
                 className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
               >
                 <option value="Toutes">Toutes les sources</option>
-                <option value="REFERENCE_PEDAGOGIQUE">Référentiels médicaux vérifiés</option>
+                <option value="REFERENCE_PEDAGOGIQUE">Questions pédagogiques avec références</option>
                 <option value="IA_PEDAGOGIQUE">Entraînement généré par IA</option>
               </select>
             </div>

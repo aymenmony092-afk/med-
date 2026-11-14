@@ -427,7 +427,7 @@ app.post('/api/ai/generate-qcm-from-document', async (req, res) => {
     if (!ai) {
       return res.status(503).json({ error: 'Service IA indisponible : la clé serveur GEMINI_API_KEY n’est pas configurée.' });
     }
-    const safeCount = Math.min(Math.max(Number(count) || 5, 1), 10);
+    const safeCount = Math.min(Math.max(Number(count) || 5, 1), 100);
     const chosenSpecialty = typeof specialty === 'string' && specialty.trim() ? specialty.trim().slice(0, 80) : 'Médecine générale';
     const safeName = fileName.slice(0, 180);
     const prompt = `Tu es un professeur de médecine et concepteur de QCM pour le Résidanat algérien.
@@ -550,6 +550,50 @@ Pour les questions cliniques, rappelle que la réponse est pédagogique et ne re
       return res.status(404).json({ error: 'Le modèle Gemini configuré est introuvable ou non accessible pour cette clé.' });
     }
     return res.status(500).json({ error: 'Erreur du service Gemini. Vérifiez la connexion et réessayez.' });
+  }
+});
+
+app.post('/api/ai/document-chat', async (req, res) => {
+  try {
+    const { fileName, mimeType, fileBase64, messages } = req.body as {
+      fileName?: string; mimeType?: string; fileBase64?: string;
+      messages?: Array<{ role: 'user' | 'assistant'; text: string }>;
+    };
+    const allowedTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/webp', 'text/plain'];
+    if (!fileName || typeof fileName !== 'string' || !fileBase64 || typeof fileBase64 !== 'string' ||
+        !mimeType || !allowedTypes.includes(mimeType)) {
+      return res.status(400).json({ error: 'Document invalide ou format non pris en charge.' });
+    }
+    if (fileBase64.length > 18_000_000) return res.status(413).json({ error: 'Document trop volumineux pour la discussion.' });
+    const history = Array.isArray(messages) ? messages
+      .filter((m) => m && (m.role === 'user' || m.role === 'assistant') && typeof m.text === 'string')
+      .slice(-10) : [];
+    if (!history.length || history[history.length - 1].role !== 'user') {
+      return res.status(400).json({ error: 'Saisissez une question sur le document.' });
+    }
+    const ai = getGeminiClient();
+    if (!ai) return res.status(503).json({ error: 'Service Gemini non configuré sur le serveur.' });
+    const contents = history.map((m, index) => ({
+      role: m.role === 'assistant' ? 'model' : 'user',
+      parts: [
+        ...(index === 0 ? [
+          { text: 'Tu es le tuteur pédagogique attaché au document « ' + fileName.slice(0, 180) + ' ». Analyse le fichier joint comme source principale. Réponds dans la langue de l’étudiant. Distingue clairement « Dans le document » et « Complément externe » si tu ajoutes une connaissance extérieure. N’invente jamais de numéro de page, de citation ou de passage. Si l’information est absente ou illisible, dis-le. Explique avec rigueur médicale et rappelle que cela reste pédagogique.' },
+          { inlineData: { mimeType, data: fileBase64 } },
+        ] : []),
+        { text: m.text.slice(0, 8000) },
+      ],
+    }));
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.8-flash',
+      contents,
+      config: { systemInstruction: 'Réponds avec précision, pédagogie et transparence sur les limites du document fourni.' },
+    });
+    const reply = (response.text || '').trim();
+    if (!reply) return res.status(502).json({ error: 'Gemini a retourné une réponse vide.' });
+    return res.json({ reply, documentGrounded: true });
+  } catch (err) {
+    console.error('Error in /api/ai/document-chat:', err);
+    return res.status(500).json({ error: 'Impossible de discuter avec ce document pour le moment.' });
   }
 });
 

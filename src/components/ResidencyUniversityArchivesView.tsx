@@ -15,6 +15,8 @@ const SOURCES: Record<University, Array<{ label: string; url: string; note: stri
     { label: 'Avis officiel — Résidanat Batna octobre 2023', url: 'https://med-fac.univ-batna2.dz/sites/default/files/medecine-fac/files/concours_de_residanat_session_2023_1.pdf', note: 'PDF institutionnel confirmé : annonce 150 QCM en 4 heures pour médecine et pharmacie. C’est un avis d’organisation, pas le sujet avec les questions.' },
     { label: 'Programme officiel Résidanat Pharmacie Batna 2020/2021', url: 'https://pharmacie.univ-batna2.dz/sites/default/files/pharmacie/files/programme_residanat.pdf', note: 'Programme institutionnel du concours de pharmacie, utile pour la classification du programme ; ce n’est pas une annale.' },
     { label: 'Étude psychométrique des QCM Batna — session octobre 2025', url: 'https://latunisiemedicale.org/index.php/tunismed/fr/article/view/6612', note: 'Étude scientifique indique l’analyse de 150 QCM issus de l’examen d’octobre 2025. Ne contient pas le texte intégral des questions.' },
+    { label: 'BMset — exemple communautaire Résidanat Batna 2022/2023', url: 'https://t.me/s/bmse_t/641', note: 'Un post Telegram présente une question attribuée au Résidanat Batna 2022/2023. À conserver comme piste à corroborer ; publication communautaire, pas le PDF officiel du sujet.' },
+    { label: 'BMset — préparation Résidanat Batna 2025', url: 'https://t.me/s/bmse_t/539', note: 'QCM corrigés annoncés comme sélectionnés du programme de 3e/4e année 2025. Ressource de préparation, pas une annale officielle démontrée.' },
   ],
   Oran: [
     { label: 'Faculté de médecine Oran 1', url: 'https://facmed.univ-oran1.dz/', note: 'Site institutionnel de la faculté.' },
@@ -27,6 +29,9 @@ const SOURCES: Record<University, Array<{ label: string; url: string; note: stri
     { label: 'Dermatologie — source Résidanat décembre 2022', url: 'https://drive.google.com/file/d/1J4b4ayIvVcqoX-WwA3SrhUZo5ni3gD1X/view', note: 'Banque thématique présentée comme source décembre 2022 ; vérifier les questions/page et l’origine avant classification historique.' },
     { label: 'Biochimie — source Résidanat décembre 2022', url: 'https://drive.google.com/file/d/1IAy1zdigmm8_dAv8UripR1Vn9tQ_1j7N/view', note: 'Banque thématique annoncée comme source décembre 2022 ; vérifier le PDF avant extraction.' },
     { label: 'Microbiologie et Hémobiologie — Résidanat décembre 2022', url: 'https://drive.google.com/file/d/1MEqTu13W0g9VmGbXJOVuunHJ_e-9S7qe/view', note: 'Ressource thématique partagée comme source de décembre 2022 ; vérifier chaque item et la provenance.' },
+    { label: 'Questions Résidanat Oran 2024 — collecte individuelle et sources', url: 'https://t.me/s/drykm_medicine/1480', note: 'Témoignage d’un lauréat : collection personnelle de questions vues au concours 2024 et tableau de sources. Les auteurs signalent eux-mêmes que certaines sources/questions restent à compléter ou corriger.' },
+    { label: 'Sources Résidanat Oran 2024 — PDF récapitulatif', url: 'https://t.me/s/drykm_medicine/1478', note: 'Publication d’un lauréat avec PDF des sources QCM 2024 ; utile pour remonter aux références originales, pas à importer directement comme annale intégrale.' },
+    { label: 'MBset Oran — simulation Résidanat 2025', url: 'https://t.me/s/drykm_medicine?after=1756', note: 'Publication communautaire signalant une simulation Oran 2025. À classer en entraînement, sauf preuve qu’un item provient du sujet officiel.' },
     { label: 'Drykm-MEDICINE — ressources Résidanat Oran', url: 'https://t.me/s/drykm_medicine', note: 'Piste de collecte secondaire : relais de PDFs et ressources attribuées à Oran. Les banques thématiques et fiches de préparation ne sont pas automatiquement des annales.' },
   ],
   Alger: [

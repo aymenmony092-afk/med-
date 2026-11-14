@@ -265,8 +265,8 @@ export const medDzDb = {
     }
   },
 
-  getDocuments: () => getAllStore<{ id: string; name: string; mimeType: string; size: number; addedAt: string; blob: Blob }>('documents'),
-  saveDocument: (document: { id: string; name: string; mimeType: string; size: number; addedAt: string; blob: Blob }) => putStoreItem('documents', document),
+  getDocuments: () => getAllStore<{ id: string; name: string; mimeType: string; size: number; addedAt: string; blob: Blob; classification?: { title: string; documentType: string; specialty: string; university: string; academicYear: string; language: string; keywords: string[]; confidence: number; moderationReason: string; communityEligible: boolean } }>('documents'),
+  saveDocument: (document: { id: string; name: string; mimeType: string; size: number; addedAt: string; blob: Blob; classification?: { title: string; documentType: string; specialty: string; university: string; academicYear: string; language: string; keywords: string[]; confidence: number; moderationReason: string; communityEligible: boolean } }) => putStoreItem('documents', document),
   deleteDocument: (id: string) => deleteStoreItem('documents', id),
 
   getNotifications: async (): Promise<ArabicNotificationLog[]> => {

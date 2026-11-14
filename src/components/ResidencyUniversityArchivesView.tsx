@@ -71,8 +71,9 @@ export const ResidencyUniversityArchivesView: React.FC<Props> = ({ allQuestions,
   const verified = useMemo(() => allQuestions.filter((q) =>
     q.sourceType === 'ARCHIVE_VERIFIEE' &&
     (q.reference?.startsWith('https://') || q.reference?.startsWith('http://')) &&
-    Boolean(q.university) &&
-    Number.isInteger(q.examYear) &&
+    UNIVERSITIES.includes(q.university as University) &&
+    Number.isInteger(q.examYear) && Number(q.examYear) >= 2008 && Number(q.examYear) <= 2026 &&
+    Boolean(q.sourceDocumentTitle?.trim()) &&
     Number.isInteger(q.sourcePage) && (q.sourcePage ?? 0) > 0 &&
     Boolean(q.sourceQuestionNumber?.trim())
   ), [allQuestions]);

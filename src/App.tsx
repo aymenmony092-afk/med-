@@ -526,6 +526,18 @@ export default function App() {
         throw new Error('Les données de profil ou de progression sont invalides');
       }
 
+      if (
+        backup.sessions.some((item) => !item || typeof item.id !== 'string' || !Array.isArray(item.questionIds) || !item.answers || typeof item.answers !== 'object') ||
+        backup.wrongAnswers.some((item) => !item || typeof item.questionId !== 'string') ||
+        backup.favorites.some((item) => !item || typeof item.id !== 'string')
+      ) {
+        throw new Error('Certaines entrées de la sauvegarde sont invalides');
+      }
+
+      if (!window.confirm('La restauration remplacera les données locales actuelles de MED DZ. Continuer ?')) {
+        return;
+      }
+
       const restored = {
         settings: backup.settings,
         progress: backup.progress,

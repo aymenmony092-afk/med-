@@ -1,0 +1,15 @@
+{
+  "appId": "dz.med.med_dz",
+  "appName": "MED DZ",
+  "webDir": "dist",
+  "server": {
+    "url": "https://med-dz.onrender.com",
+    "cleartext": false,
+    "allowNavigation": [
+      "med-dz.onrender.com"
+    ]
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}

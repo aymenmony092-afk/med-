@@ -68,6 +68,12 @@ export interface QCMQuestion {
   examYear?: number;
   university?: string;
   reference: string;
+  /** Exact provenance for imported historical exam questions. */
+  sourceDocumentTitle?: string;
+  sourcePage?: number;
+  sourceQuestionNumber?: string;
+  correctionStatus?: 'OFFICIELLE' | 'VERIFIEE' | 'PROPOSEE' | 'NON_VERIFIEE';
+  correctionReference?: string;
 }
 
 export interface MedicalLesson {

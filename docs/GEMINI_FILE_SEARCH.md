@@ -44,7 +44,7 @@ Call `POST /api/admin/library/index-document` with the admin header and JSON fie
 
 Supported MIME types: PDF, PNG, JPEG, WEBP and plain text. Maximum decoded size: 13 MiB.
 
-A successful response is returned only after Google reports indexing complete. A pending response is not success; check before retrying to avoid duplicate indexing.
+A successful response is returned only after Google reports indexing complete. A pending response is not success; it returns an operation name. Check it with `GET /api/admin/library/index-status?operationName=operations/...` and the same admin header before retrying to avoid duplicate indexing.
 
 ## Search
 

@@ -8,14 +8,14 @@ export const HISTORICAL_ARCHIVES: HistoricalExamRecord[] = [
     specialty: 'Épreuve Transversale Préclinique & Clinique',
     examType: 'Résidanat',
     questionCount: 15,
-    availability: 'DISPONIBLE_SERIE_VERIFIEE',
+    availability: 'SERIE_PEDAGOGIQUE',
     linkedQuestionIds: [
       'RES-CARD-001', 'RES-CARD-002', 'RES-PNEU-001', 'RES-PNEU-003', 'RES-NEUR-001',
       'RES-GAST-001', 'RES-NEPH-001', 'RES-ENDO-001', 'RES-HEM-001', 'RES-INF-001',
       'RES-PED-001', 'RES-GYN-001', 'RES-CHIR-001', 'RES-MED-001', 'RES-URG-001',
     ],
     sourceNote:
-      'Série d’entraînement structurée selon la maquette du concours d’Alger 2025 (questions pédagogiques vérifiées sur référentiels, sans reproduction illicite de document protégé).',
+      'Série pédagogique originale alignée sur les thèmes du concours d’Alger 2025. Ces QCM ne sont pas extraits de l’épreuve officielle et ne constituent pas une annale.',
   },
   {
     id: 'ARC-2024-ORAN-RES',
@@ -24,14 +24,14 @@ export const HISTORICAL_ARCHIVES: HistoricalExamRecord[] = [
     specialty: 'Sciences Fondamentales (Anatomie, Physiologie, Biochimie, Pharmacologie)',
     examType: 'Résidanat',
     questionCount: 12,
-    availability: 'DISPONIBLE_SERIE_VERIFIEE',
+    availability: 'SERIE_PEDAGOGIQUE',
     linkedQuestionIds: [
       'RES-ANAT-001', 'RES-ANAT-003', 'RES-ANAT-005', 'RES-PHYS-001',
       'RES-PHYS-002', 'RES-PHYS-004', 'RES-BIOC-001', 'RES-BIOC-002',
       'RES-PHAR-001', 'RES-PHAR-002', 'RES-PHAR-003', 'RES-MICR-001',
     ],
     sourceNote:
-      'Série thématique alignée sur le programme de sciences fondamentales du concours d’Oran 2024.',
+      'Série pédagogique originale alignée sur les thèmes de sciences fondamentales associés au programme du Résidanat. Non extraite d’une épreuve officielle d’Oran 2024.',
   },
   {
     id: 'ARC-2023-CONS-RES',
@@ -40,14 +40,14 @@ export const HISTORICAL_ARCHIVES: HistoricalExamRecord[] = [
     specialty: 'Pathologie Médicale & Urgences',
     examType: 'Résidanat',
     questionCount: 12,
-    availability: 'DISPONIBLE_SERIE_VERIFIEE',
+    availability: 'SERIE_PEDAGOGIQUE',
     linkedQuestionIds: [
       'RES-CARD-003', 'RES-CARD-006', 'RES-PNEU-002', 'RES-PNEU-004',
       'RES-NEUR-003', 'RES-GAST-002', 'RES-NEPH-002', 'RES-ENDO-002',
       'RES-INF-002', 'RES-MED-002', 'RES-URG-002', 'RES-URG-006',
     ],
     sourceNote:
-      'Série thématique alignée sur le programme médico-clinique du concours de Constantine 2023.',
+      'Série pédagogique originale alignée sur les thèmes médico-cliniques du programme du Résidanat. Non extraite d’une épreuve officielle de Constantine 2023.',
   },
   {
     id: 'ARC-2022-ANNA-RES',
@@ -56,14 +56,14 @@ export const HISTORICAL_ARCHIVES: HistoricalExamRecord[] = [
     specialty: 'Mère-Enfant & Chirurgie',
     examType: 'Résidanat',
     questionCount: 10,
-    availability: 'DISPONIBLE_SERIE_VERIFIEE',
+    availability: 'SERIE_PEDAGOGIQUE',
     linkedQuestionIds: [
       'RES-PED-002', 'RES-PED-003', 'RES-PED-004', 'RES-PED-005',
       'RES-GYN-002', 'RES-GYN-003', 'RES-GYN-004',
       'RES-CHIR-002', 'RES-CHIR-004', 'RES-CHIR-005',
     ],
     sourceNote:
-      'Série thématique alignée sur le programme Pédiatrie, Gynécologie-Obstétrique et Chirurgie (Annaba 2022).',
+      'Série pédagogique originale de révision en pédiatrie, gynécologie-obstétrique et chirurgie. Non extraite d’une épreuve officielle d’Annaba 2022.',
   },
   {
     id: 'ARC-2024-EMD-Y1',
@@ -73,13 +73,13 @@ export const HISTORICAL_ARCHIVES: HistoricalExamRecord[] = [
     examType: 'EMD',
     yearLevel: 1,
     questionCount: 10,
-    availability: 'DISPONIBLE_SERIE_VERIFIEE',
+    availability: 'SERIE_PEDAGOGIQUE',
     linkedQuestionIds: [
       'RES-ANAT-001', 'RES-ANAT-004', 'RES-BIOC-001', 'RES-BIOC-006',
       'RES-HIST-001', 'RES-HIST-002', 'RES-HIST-003',
       'RES-EMBR-001', 'RES-EMBR-002', 'RES-EMBR-006',
     ],
-    sourceNote: 'Série de révision EMD 1ère année médecine (Sciences précliniques).',
+    sourceNote: 'Série pédagogique originale de révision EMD — 1ère année. Non extraite d’une épreuve officielle de Blida 2024.',
   },
   {
     id: 'ARC-2024-EMD-Y2',
@@ -89,13 +89,13 @@ export const HISTORICAL_ARCHIVES: HistoricalExamRecord[] = [
     examType: 'EMD',
     yearLevel: 2,
     questionCount: 10,
-    availability: 'DISPONIBLE_SERIE_VERIFIEE',
+    availability: 'SERIE_PEDAGOGIQUE',
     linkedQuestionIds: [
       'RES-ANAT-002', 'RES-ANAT-003', 'RES-ANAT-005', 'RES-ANAT-006',
       'RES-PHYS-001', 'RES-PHYS-002', 'RES-PHYS-003', 'RES-PHYS-004',
       'RES-BIOC-002', 'RES-BIOC-003',
     ],
-    sourceNote: 'Série de révision EMD 2ème année médecine.',
+    sourceNote: 'Série pédagogique originale de révision EMD — 2ème année. Non extraite d’une épreuve officielle de Tizi Ouzou 2024.',
   },
   {
     id: 'ARC-2024-EMD-Y3',
@@ -105,14 +105,14 @@ export const HISTORICAL_ARCHIVES: HistoricalExamRecord[] = [
     examType: 'EMD',
     yearLevel: 3,
     questionCount: 12,
-    availability: 'DISPONIBLE_SERIE_VERIFIEE',
+    availability: 'SERIE_PEDAGOGIQUE',
     linkedQuestionIds: [
       'RES-PHAR-001', 'RES-PHAR-002', 'RES-PHAR-004',
       'RES-MICR-001', 'RES-MICR-002', 'RES-MICR-003',
       'RES-IMMU-001', 'RES-IMMU-002', 'RES-IMMU-003',
       'RES-PATH-001', 'RES-PATH-002', 'RES-PATH-005',
     ],
-    sourceNote: 'Série de révision EMD 3ème année médecine.',
+    sourceNote: 'Série pédagogique originale de révision EMD — 3ème année. Non extraite d’une épreuve officielle de Sétif 2024.',
   },
   {
     id: 'ARC-2024-EMD-Y4',
@@ -122,14 +122,14 @@ export const HISTORICAL_ARCHIVES: HistoricalExamRecord[] = [
     examType: 'EMD',
     yearLevel: 4,
     questionCount: 12,
-    availability: 'DISPONIBLE_SERIE_VERIFIEE',
+    availability: 'SERIE_PEDAGOGIQUE',
     linkedQuestionIds: [
       'RES-CARD-001', 'RES-CARD-004', 'RES-CARD-005',
       'RES-PNEU-001', 'RES-PNEU-003', 'RES-GAST-001',
       'RES-GAST-003', 'RES-GAST-006', 'RES-NEPH-001',
       'RES-NEPH-002', 'RES-INF-001', 'RES-INF-006',
     ],
-    sourceNote: 'Série de révision EMD 4ème année médecine.',
+    sourceNote: 'Série pédagogique originale de révision EMD — 4ème année. Non extraite d’une épreuve officielle de Batna 2024.',
   },
   {
     id: 'ARC-2024-EMD-Y5',
@@ -139,14 +139,14 @@ export const HISTORICAL_ARCHIVES: HistoricalExamRecord[] = [
     examType: 'EMD',
     yearLevel: 5,
     questionCount: 12,
-    availability: 'DISPONIBLE_SERIE_VERIFIEE',
+    availability: 'SERIE_PEDAGOGIQUE',
     linkedQuestionIds: [
       'RES-NEUR-001', 'RES-NEUR-002', 'RES-NEUR-004',
       'RES-ENDO-001', 'RES-ENDO-003', 'RES-ENDO-004',
       'RES-PED-001', 'RES-PED-002', 'RES-PED-004',
       'RES-GYN-001', 'RES-GYN-002', 'RES-GYN-003',
     ],
-    sourceNote: 'Série de révision EMD 5ème année médecine.',
+    sourceNote: 'Série pédagogique originale de révision EMD — 5ème année. Non extraite d’une épreuve officielle de Tlemcen 2024.',
   },
   {
     id: 'ARC-2024-EMD-Y6',
@@ -156,16 +156,16 @@ export const HISTORICAL_ARCHIVES: HistoricalExamRecord[] = [
     examType: 'EMD',
     yearLevel: 6,
     questionCount: 12,
-    availability: 'DISPONIBLE_SERIE_VERIFIEE',
+    availability: 'SERIE_PEDAGOGIQUE',
     linkedQuestionIds: [
       'RES-HEM-001', 'RES-HEM-002', 'RES-HEM-006',
       'RES-CHIR-001', 'RES-CHIR-002', 'RES-CHIR-004',
       'RES-MED-001', 'RES-MED-002', 'RES-MED-005',
       'RES-URG-001', 'RES-URG-002', 'RES-URG-005',
     ],
-    sourceNote: 'Série de révision EMD 6ème année médecine.',
+    sourceNote: 'Série pédagogique originale de révision EMD — 6ème année. Non extraite d’une épreuve officielle de Sidi Bel Abbès 2024.',
   },
-  // Annales 2002-2021 — transparence stricte sur la disponibilité locale
+  // Registre historique 2002-2021 — aucune annale officielle complète n'est intégrée sans preuve de provenance
   ...[
     { year: 2021, university: 'Alger' as const },
     { year: 2020, university: 'Oran' as const },

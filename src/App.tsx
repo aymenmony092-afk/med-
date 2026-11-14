@@ -8,6 +8,7 @@ import {
   ClipboardCheck,
   Download,
   FileQuestion,
+  FileUp,
   GraduationCap,
   Home,
   Layers,
@@ -35,6 +36,7 @@ import { ClinicalCasesView, MedicalToolsView } from './components/ClinicalCasesA
 import { SmartSummariesView } from './components/SmartSummariesView';
 import { AIStudyAssistantView } from './components/AIStudyAssistantView';
 import { ResidencyUniversityArchivesView } from './components/ResidencyUniversityArchivesView';
+import { DocumentsLibraryView } from './components/DocumentsLibraryView';
 import { CLINICAL_CASES } from './data/clinical_cases';
 import { MEDICAL_LESSONS } from './data/curriculum';
 import { CURATED_QCMS } from './data/qcm_index';
@@ -69,6 +71,7 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'qcm', label: 'Banque QCM', group: 'Principal', icon: FileQuestion },
   { id: 'emd', label: 'EMD', group: 'Principal', icon: ClipboardCheck },
   { id: 'annales', label: 'Annales et examens précédents', group: 'Principal', icon: Archive },
+  { id: 'documents', label: 'Mes documents & QCM IA', group: 'Principal', icon: FileUp },
   { id: 'cours', label: 'Cours médicaux', group: 'Principal', icon: BookOpen },
   { id: 'resumes', label: 'Résumés intelligents', group: 'Principal', icon: Sparkles },
   { id: 'assistant-ia', label: 'Assistant IA médical', group: 'Principal', icon: MessageCircle },
@@ -895,6 +898,13 @@ export default function App() {
               }}
               favoriteIds={favoriteIds}
               onToggleFavoriteNote={handleToggleFavoriteNote}
+            />
+          ) : activeSection === 'documents' ? (
+            <DocumentsLibraryView
+              onAddAIQuestions={async (qs) => {
+                setCustomQuestions((prev) => [...qs, ...prev]);
+                await medDzDb.saveCustomQuestions(qs);
+              }}
             />
           ) : activeSection === 'annales' ? (
             <ResidencyUniversityArchivesView

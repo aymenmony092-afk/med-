@@ -43,7 +43,7 @@ export const QCMRunner: React.FC<QCMRunnerProps> = ({
 }) => {
   const [localSession, setLocalSession] = useState<StudySessionRecord>(session);
   const [showNavGrid, setShowNavGrid] = useState(false);
-  const timeoutFinalizedRef = useRef<string | null>(null);
+  const finalizedSessionRef = useRef<string | null>(null);
 
   useEffect(() => {
     setLocalSession(session);
@@ -84,13 +84,13 @@ export const QCMRunner: React.FC<QCMRunnerProps> = ({
       localSession.completedAt ||
       localSession.timerSecondsTotal <= 0 ||
       localSession.timerSecondsRemaining > 0 ||
-      timeoutFinalizedRef.current === localSession.id
+      finalizedSessionRef.current === localSession.id
     ) {
       return;
     }
 
     // Protect against repeated effect execution (including Strict Mode remounts).
-    timeoutFinalizedRef.current = localSession.id;
+    finalizedSessionRef.current = localSession.id;
 
     if (!localSession.immediateFeedback) {
       for (const questionId of localSession.questionIds) {
@@ -190,6 +190,10 @@ export const QCMRunner: React.FC<QCMRunnerProps> = ({
   };
 
   const handleFinishExam = () => {
+    // Guard against rapid repeated clicks before React commits the completed state.
+    if (localSession.completedAt || finalizedSessionRef.current === localSession.id) return;
+    finalizedSessionRef.current = localSession.id;
+
     // Record any answers that were in exam mode (not yet scored)
     if (!localSession.immediateFeedback) {
       for (const q of questions) {

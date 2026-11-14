@@ -49,7 +49,8 @@ Le workflow GitHub Actions `.github/workflows/android-apk.yml` :
 4. Construit le frontend.
 5. Vérifie la configuration Capacitor.
 6. Génère le projet Android et le synchronise.
-7. Construit un APK debug et le publie comme artifact GitHub Actions.
+7. Applique l’icône Android originale MED DZ (blouse médicale et stéthoscope) issue du prototype natif.
+8. Construit un APK debug et le publie comme artifact GitHub Actions.
 
 L'application Android utilise actuellement l'URL de déploiement configurée dans `capacitor.config.json`. Le service web/API correspondant doit donc être déployé et accessible pour utiliser les fonctions connectées à Gemini. Les données d'étude déjà chargées et enregistrées localement restent sur l'appareil.
 

@@ -119,7 +119,7 @@ export interface HistoricalExamRecord {
   examType: 'Résidanat' | 'EMD';
   yearLevel?: 1 | 2 | 3 | 4 | 5 | 6 | 7;
   questionCount: number;
-  availability: 'DISPONIBLE_SERIE_VERIFIEE' | 'INDISPONIBLE_LOCALEMENT';
+  availability: 'ANNALE_OFFICIELLE_VERIFIEE' | 'SERIE_PEDAGOGIQUE' | 'INDISPONIBLE_LOCALEMENT';
   linkedQuestionIds: string[];
   sourceNote: string;
 }

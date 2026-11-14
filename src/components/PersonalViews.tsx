@@ -81,6 +81,15 @@ export const PersonalViews: React.FC<PersonalViewsProps> = ({
 }) => {
   const [favFilter, setFavFilter] = useState<'all' | FavoriteEntry['type']>('all');
   const [confirmReset, setConfirmReset] = useState(false);
+  const specialtyBreakdown = useMemo(
+    () =>
+      ALL_SPECIALTIES.map((spec) => {
+        const st = progress.specialtyStats[spec] || { answered: 0, correct: 0 };
+        const pct = st.answered > 0 ? Math.round((st.correct / st.answered) * 100) : null;
+        return { specialty: spec, ...st, pct };
+      }),
+    [progress.specialtyStats]
+  );
 
   // 1. FAVORIS
   if (mode === 'favoris') {
@@ -262,14 +271,6 @@ export const PersonalViews: React.FC<PersonalViewsProps> = ({
   if (mode === 'statistiques') {
     const successPct =
       progress.totalAnswered > 0 ? Math.round((progress.totalCorrect / progress.totalAnswered) * 100) : 0;
-
-    const specialtyBreakdown = useMemo(() => {
-      return ALL_SPECIALTIES.map((spec) => {
-        const st = progress.specialtyStats[spec] || { answered: 0, correct: 0 };
-        const pct = st.answered > 0 ? Math.round((st.correct / st.answered) * 100) : null;
-        return { specialty: spec, ...st, pct };
-      });
-    }, [progress.specialtyStats]);
 
     const weakSubjects = specialtyBreakdown
       .filter((s) => s.answered >= 1 && (s.pct ?? 100) < 65)

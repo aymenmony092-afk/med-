@@ -317,6 +317,10 @@ app.post('/api/ai/generate-qcm', async (req, res) => {
       university?: string;
       targetYear?: number;
     };
+    const universityContext = typeof university === 'string' ? university.trim().slice(0, 100) : '';
+    const yearContext = Number.isInteger(targetYear) && Number(targetYear) >= 2000 && Number(targetYear) <= new Date().getFullYear()
+      ? Number(targetYear)
+      : undefined;
 
     const ai = getGeminiClient();
     if (!ai) {
@@ -376,22 +380,23 @@ Règles strictes :
     }>;
 
     const normalized = items
-      .filter((q) => q && q.stem && Array.isArray(q.choices) && q.choices.length === 5)
+      .filter((q) => q && typeof q.stem === 'string' && q.stem.trim() && Array.isArray(q.choices) && q.choices.length === 5 && q.choices.every((choice) => typeof choice === 'string' && choice.trim()) && Number.isInteger(q.correctIndex) && q.correctIndex >= 0 && q.correctIndex <= 4 && typeof q.explanation === 'string' && q.explanation.trim())
       .map((q, idx) => ({
         id: `IA-${Date.now()}-${idx + 1}`,
         specialty: chosenSpecialty,
         yearLevel: 'Résidanat',
         stem: q.stem,
         choices: q.choices,
-        correctIndex: Math.min(Math.max(Number(q.correctIndex) || 0, 0), 4),
+        correctIndex: Number(q.correctIndex),
         explanation: q.explanation,
         incorrectExplanations: q.incorrectExplanations,
         difficulty: chosenDifficulty,
         sourceType: 'IA_PEDAGOGIQUE' as const,
         sourceLabel: universityContext && yearContext
-          ? `Entraînement IA — Faculté de ${universityContext} · cible ${yearContext} (non annale officielle)`
+          ? `Entraînement IA — thème de ${universityContext} ${yearContext} (non annale officielle)`
           : 'Entraînement généré par IA (non issu d’une annale officielle)',
-        reference: q.reference || `Référentiel académique de ${chosenSpecialty}`,
+        reference: q.reference ? `Référence proposée par IA — à vérifier : ${q.reference}` : `Référence académique à vérifier — ${chosenSpecialty}`,
+        correctionStatus: 'NON_VERIFIEE' as const,
       }));
 
     return res.json({ questions: normalized });

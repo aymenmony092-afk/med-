@@ -309,11 +309,13 @@ Consignes strictes :
 
 app.post('/api/ai/generate-qcm', async (req, res) => {
   try {
-    const { specialty, topic, difficulty, count } = req.body as {
+    const { specialty, topic, difficulty, count, university, targetYear } = req.body as {
       specialty?: string;
       topic?: string;
       difficulty?: 'Facile' | 'Moyen' | 'Difficile';
       count?: number;
+      university?: string;
+      targetYear?: number;
     };
 
     const ai = getGeminiClient();
@@ -386,7 +388,9 @@ Règles strictes :
         incorrectExplanations: q.incorrectExplanations,
         difficulty: chosenDifficulty,
         sourceType: 'IA_PEDAGOGIQUE' as const,
-        sourceLabel: 'Entraînement généré par IA (non issu d’une annale officielle)',
+        sourceLabel: universityContext && yearContext
+          ? `Entraînement IA — Faculté de ${universityContext} · cible ${yearContext} (non annale officielle)`
+          : 'Entraînement généré par IA (non issu d’une annale officielle)',
         reference: q.reference || `Référentiel académique de ${chosenSpecialty}`,
       }));
 
@@ -396,6 +400,55 @@ Règles strictes :
     return res.status(500).json({
       error: 'Impossible de générer les QCM d’entraînement pour le moment.',
     });
+  }
+});
+
+
+app.post('/api/ai/chat', async (req, res) => {
+  try {
+    const rawMessages = Array.isArray(req.body?.messages) ? req.body.messages : [];
+    const messages = rawMessages
+      .filter((item: any) => item && (item.role === 'user' || item.role === 'assistant') && typeof item.content === 'string')
+      .slice(-12)
+      .map((item: any) => ({ role: item.role === 'assistant' ? 'model' : 'user', parts: [{ text: item.content.slice(0, 12000) }] }));
+
+    if (!messages.length || messages[messages.length - 1].role !== 'user') {
+      return res.status(400).json({ error: 'Veuillez saisir une question.' });
+    }
+
+    const ai = getGeminiClient();
+    if (!ai) {
+      return res.status(503).json({ error: 'Service IA indisponible : la clé serveur GEMINI_API_KEY n’est pas configurée.' });
+    }
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.8-flash',
+      contents: messages,
+      config: {
+        systemInstruction: `Tu es l'assistant pédagogique officiel de l'application MED DZ, spécialisé dans les études médicales et la préparation au Résidanat algérien.
+Réponds dans la langue utilisée par l'étudiant (français ou arabe). Sois clair, structuré, précis et pédagogique.
+Tu peux expliquer les cours, détailler la physiopathologie, comparer les diagnostics, préparer des fiches, créer des QCM originaux avec cinq propositions et correction expliquée.
+N'invente jamais une annale, une année, une université, une source ou une recommandation. Si l'étudiant demande un sujet historique non fourni dans le contexte, indique que tu ne disposes pas du document source et propose un entraînement distinct clairement marqué comme généré par IA.
+Pour les questions cliniques, rappelle que la réponse est pédagogique et ne remplace pas l'évaluation d'un professionnel. Ne donne pas de diagnostic individuel définitif ni de prescription personnalisée.`,
+      },
+    });
+
+    const reply = (response.text || '').trim();
+    if (!reply) return res.status(502).json({ error: 'Gemini a retourné une réponse vide. Réessayez.' });
+    return res.json({ reply, model: 'gemini-3.8-flash' });
+  } catch (err: any) {
+    console.error('Error in /api/ai/chat:', err);
+    const status = typeof err?.status === 'number' ? err.status : 500;
+    if (status === 429 || String(err?.message || '').includes('RESOURCE_EXHAUSTED')) {
+      return res.status(429).json({ error: 'Quota Gemini atteint temporairement. Réessayez un peu plus tard.' });
+    }
+    if (status === 400 || status === 403 || String(err?.message || '').includes('API_KEY_INVALID')) {
+      return res.status(status === 400 ? 400 : 403).json({ error: 'La clé Gemini est invalide ou ses autorisations sont insuffisantes.' });
+    }
+    if (status === 404 || String(err?.message || '').includes('NOT_FOUND')) {
+      return res.status(404).json({ error: 'Le modèle Gemini configuré est introuvable ou non accessible pour cette clé.' });
+    }
+    return res.status(500).json({ error: 'Erreur du service Gemini. Vérifiez la connexion et réessayez.' });
   }
 });
 

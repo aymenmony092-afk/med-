@@ -10,8 +10,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-registerGeminiFileSearchRoutes(app);
 app.use(express.json({ limit: '22mb' }));
+registerGeminiFileSearchRoutes(app);
 
 function getGeminiClient(): GoogleGenAI | null {
   const apiKey = process.env.GEMINI_API_KEY;

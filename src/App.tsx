@@ -817,10 +817,6 @@ export default function App() {
             <ResidencyUniversityArchivesView
               allQuestions={allQuestions}
               onStartSession={handleStartSession}
-              onAddAIQuestions={async (qs) => {
-                setCustomQuestions((prev) => [...qs, ...prev]);
-                await medDzDb.saveCustomQuestions(qs);
-              }}
             />
           ) : activeSection === 'residanat' ||
             activeSection === 'qcm' ||

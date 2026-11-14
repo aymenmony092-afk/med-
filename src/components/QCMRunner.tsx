@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Bookmark,
   CheckCircle2,
@@ -21,6 +21,22 @@ interface QCMRunnerProps {
   onExit: () => void;
 }
 
+function restoreSessionClock(session: StudySessionRecord): StudySessionRecord {
+  if (session.completedAt || session.timerSecondsTotal <= 0) return session;
+
+  const lastSavedAt = Date.parse(session.updatedAt);
+  if (!Number.isFinite(lastSavedAt)) return session;
+
+  const elapsedSeconds = Math.max(0, Math.floor((Date.now() - lastSavedAt) / 1000));
+  if (elapsedSeconds === 0) return session;
+
+  return {
+    ...session,
+    timerSecondsRemaining: Math.max(0, session.timerSecondsRemaining - elapsedSeconds),
+    updatedAt: new Date().toISOString(),
+  };
+}
+
 function formatTimer(totalSec: number): string {
   const safe = Math.max(0, Math.floor(totalSec));
   const h = Math.floor(safe / 3600);
@@ -41,11 +57,12 @@ export const QCMRunner: React.FC<QCMRunnerProps> = ({
   onRecordAnswer,
   onExit,
 }) => {
-  const [localSession, setLocalSession] = useState<StudySessionRecord>(session);
+  const [localSession, setLocalSession] = useState<StudySessionRecord>(() => restoreSessionClock(session));
   const [showNavGrid, setShowNavGrid] = useState(false);
+  const finalizedSessionRef = useRef<string | null>(null);
 
   useEffect(() => {
-    setLocalSession(session);
+    setLocalSession(restoreSessionClock(session));
   }, [session.id]);
 
   // Countdown timer when timerSecondsTotal > 0 and session not completed
@@ -56,24 +73,12 @@ export const QCMRunner: React.FC<QCMRunnerProps> = ({
       setLocalSession((prev) => {
         if (prev.completedAt) return prev;
         const nextRemaining = Math.max(0, prev.timerSecondsRemaining - 1);
-        if (nextRemaining === 0) {
-          const score = computeScore(prev);
-          const finished: StudySessionRecord = {
-            ...prev,
-            timerSecondsRemaining: 0,
-            completedAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            scorePercent: score,
-          };
-          onUpdateSession(finished);
-          return finished;
-        }
         const updated = {
           ...prev,
           timerSecondsRemaining: nextRemaining,
           updatedAt: new Date().toISOString(),
         };
-        if (nextRemaining % 5 === 0) {
+        if (nextRemaining > 0 && nextRemaining % 5 === 0) {
           onUpdateSession(updated);
         }
         return updated;
@@ -88,6 +93,57 @@ export const QCMRunner: React.FC<QCMRunnerProps> = ({
     [localSession.questionIds, questionsMap]
   );
 
+  // Finalize an expired timed session in an effect, not inside a React state
+  // updater. Updaters must stay pure because React may invoke them more than once.
+  useEffect(() => {
+    if (
+      localSession.completedAt ||
+      localSession.timerSecondsTotal <= 0 ||
+      localSession.timerSecondsRemaining > 0 ||
+      finalizedSessionRef.current === localSession.id
+    ) {
+      return;
+    }
+
+    // Protect against repeated effect execution (including Strict Mode remounts).
+    finalizedSessionRef.current = localSession.id;
+
+    if (!localSession.immediateFeedback) {
+      for (const questionId of localSession.questionIds) {
+        const question = questionsMap[questionId];
+        const selectedIndex = localSession.answers[questionId];
+        if (question && selectedIndex !== undefined) {
+          onRecordAnswer(
+            question,
+            selectedIndex,
+            selectedIndex === question.correctIndex,
+            25
+          );
+        }
+      }
+    }
+
+    const finished: StudySessionRecord = {
+      ...localSession,
+      timerSecondsRemaining: 0,
+      completedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      scorePercent: computeScore(localSession),
+    };
+    setLocalSession(finished);
+    onUpdateSession(finished);
+  }, [
+    localSession.completedAt,
+    localSession.timerSecondsTotal,
+    localSession.timerSecondsRemaining,
+    localSession.immediateFeedback,
+    localSession.questionIds,
+    localSession.answers,
+    questionsMap,
+    onRecordAnswer,
+    onUpdateSession,
+  ]);
+
   function computeScore(s: StudySessionRecord): number {
     const qs = s.questionIds.map((id) => questionsMap[id]).filter(Boolean);
     if (qs.length === 0) return 0;
@@ -101,6 +157,10 @@ export const QCMRunner: React.FC<QCMRunnerProps> = ({
   const currentQuestion = questions[localSession.currentIndex];
   const answeredCount = Object.keys(localSession.answers).length;
   const correctCount = questions.filter((q) => localSession.answers[q.id] === q.correctIndex).length;
+  const incorrectAnsweredCount = questions.filter(
+    (q) => localSession.answers[q.id] !== undefined && localSession.answers[q.id] !== q.correctIndex
+  ).length;
+  const unansweredCount = Math.max(0, questions.length - answeredCount);
 
   const handleSelectChoice = (choiceIdx: number) => {
     if (!currentQuestion || localSession.completedAt) return;
@@ -119,7 +179,9 @@ export const QCMRunner: React.FC<QCMRunnerProps> = ({
     setLocalSession(updated);
     onUpdateSession(updated);
 
-    if (!alreadyAnswered) {
+    // In exam mode, answers are scored once at final submission (or timeout).
+    // Recording here as well would double-count every answered question.
+    if (!alreadyAnswered && localSession.immediateFeedback) {
       onRecordAnswer(currentQuestion, choiceIdx, choiceIdx === currentQuestion.correctIndex, 25);
     }
   };
@@ -144,6 +206,10 @@ export const QCMRunner: React.FC<QCMRunnerProps> = ({
   };
 
   const handleFinishExam = () => {
+    // Guard against rapid repeated clicks before React commits the completed state.
+    if (localSession.completedAt || finalizedSessionRef.current === localSession.id) return;
+    finalizedSessionRef.current = localSession.id;
+
     // Record any answers that were in exam mode (not yet scored)
     if (!localSession.immediateFeedback) {
       for (const q of questions) {
@@ -167,7 +233,11 @@ export const QCMRunner: React.FC<QCMRunnerProps> = ({
 
   const handleRestartWrongOnly = () => {
     const wrongIds = questions
-      .filter((q) => localSession.answers[q.id] !== q.correctIndex)
+      .filter(
+        (q) =>
+          localSession.answers[q.id] !== undefined &&
+          localSession.answers[q.id] !== q.correctIndex
+      )
       .map((q) => q.id);
     if (wrongIds.length === 0) return;
     const restarted: StudySessionRecord = {
@@ -273,17 +343,18 @@ export const QCMRunner: React.FC<QCMRunnerProps> = ({
                 Score : {localSession.scorePercent ?? computeScore(localSession)} % ({correctCount}/{questions.length})
               </h3>
               <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-                Vous pouvez parcourir chaque question ci-dessous pour consulter les explications scientifiques détaillées.
+                {answeredCount} répondues · {unansweredCount} sans réponse · {incorrectAnsweredCount} incorrectes.
+                Vous pouvez parcourir chaque question pour consulter les explications scientifiques détaillées.
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              {correctCount < questions.length && (
+              {incorrectAnsweredCount > 0 && (
                 <button
                   onClick={handleRestartWrongOnly}
                   className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-teal-600 text-white text-sm font-medium hover:bg-teal-700 whitespace-nowrap"
                 >
                   <RotateCcw className="w-4 h-4" />
-                  Refaire mes erreurs ({questions.length - correctCount})
+                  Refaire mes erreurs ({incorrectAnsweredCount})
                 </button>
               )}
               <button
@@ -348,6 +419,15 @@ export const QCMRunner: React.FC<QCMRunnerProps> = ({
             <span>Difficulté : {currentQuestion.difficulty}</span>
             <span aria-hidden="true">·</span>
             <span>{currentQuestion.sourceLabel}</span>
+            {currentQuestion.sourceType === 'ARCHIVE_VERIFIEE' && currentQuestion.sourcePage && currentQuestion.sourceQuestionNumber && (
+              <>
+                <span aria-hidden="true">·</span>
+                <span className="font-semibold text-teal-700 dark:text-teal-300">
+                  Annale vérifiée · p. {currentQuestion.sourcePage} · Q. {currentQuestion.sourceQuestionNumber}
+                  {currentQuestion.sourceDocumentTitle ? ` · ${currentQuestion.sourceDocumentTitle}` : ''}
+                </span>
+              </>
+            )}
           </div>
 
           <div className="flex items-center gap-2">
@@ -432,7 +512,7 @@ export const QCMRunner: React.FC<QCMRunnerProps> = ({
         {/* Scientific Explanation */}
         {isRevealed && (
           <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 p-5 space-y-3">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                 Correction scientifique détaillée
               </span>
@@ -440,6 +520,14 @@ export const QCMRunner: React.FC<QCMRunnerProps> = ({
                 Réponse juste : {String.fromCharCode(65 + currentQuestion.correctIndex)}
               </span>
             </div>
+            <p className="text-xs font-medium text-slate-600 dark:text-slate-300">
+              Statut du corrigé : {
+                currentQuestion.correctionStatus === 'OFFICIELLE' ? 'Officiel' :
+                currentQuestion.correctionStatus === 'VERIFIEE' ? 'Vérifié' :
+                currentQuestion.correctionStatus === 'PROPOSEE' ? 'Proposé — à confirmer' :
+                'Non vérifié — ne pas considérer comme corrigé officiel'
+              }
+            </p>
             <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
               {currentQuestion.explanation}
             </p>

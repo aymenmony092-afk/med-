@@ -10,10 +10,12 @@ export type SectionId =
   | 'annee-7'
   | 'cours'
   | 'resumes'
+  | 'assistant-ia'
   | 'qcm'
   | 'emd'
   | 'residanat'
   | 'annales'
+  | 'documents'
   | 'cas-cliniques'
   | 'outils'
   | 'favoris'
@@ -67,6 +69,13 @@ export interface QCMQuestion {
   examYear?: number;
   university?: string;
   reference: string;
+  /** Exact provenance for imported historical exam questions. */
+  sourceDocumentTitle?: string;
+  sourcePage?: number;
+  sourceQuestionNumber?: string;
+  sourceExcerpt?: string;
+  correctionStatus?: 'OFFICIELLE' | 'VERIFIEE' | 'PROPOSEE' | 'NON_VERIFIEE';
+  correctionReference?: string;
 }
 
 export interface MedicalLesson {
@@ -119,7 +128,7 @@ export interface HistoricalExamRecord {
   examType: 'Résidanat' | 'EMD';
   yearLevel?: 1 | 2 | 3 | 4 | 5 | 6 | 7;
   questionCount: number;
-  availability: 'DISPONIBLE_SERIE_VERIFIEE' | 'INDISPONIBLE_LOCALEMENT';
+  availability: 'DISPONIBLE_SERIE_VERIFIEE' | 'DISPONIBLE_SERIE_PEDAGOGIQUE' | 'INDISPONIBLE_LOCALEMENT';
   linkedQuestionIds: string[];
   sourceNote: string;
 }

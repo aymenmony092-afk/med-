@@ -135,7 +135,8 @@ export const ResidanatEmdAnnalesViews: React.FC<ResidanatEmdAnnalesViewsProps> =
 
   // 1. RÉSIDANAT HUB
   if (mode === 'residanat') {
-    const curatedCount = allQuestions.filter((q) => q.sourceType !== 'IA_PEDAGOGIQUE').length;
+    const curatedCount = allQuestions.filter((q) => q.sourceType === 'REFERENCE_PEDAGOGIQUE').length;
+    const archiveCount = allQuestions.filter((q) => q.sourceType === 'ARCHIVE_VERIFIEE' && (q.reference?.startsWith('https://') || q.reference?.startsWith('http://')) && ['Alger', 'Oran', 'Batna'].includes(q.university || '') && Number.isInteger(q.examYear) && Number(q.examYear) >= 2008 && Number(q.examYear) <= 2026 && Boolean(q.sourceDocumentTitle?.trim()) && Number.isInteger(q.sourcePage) && (q.sourcePage ?? 0) > 0 && Boolean(q.sourceQuestionNumber?.trim())).length;
     const aiCount = allQuestions.filter((q) => q.sourceType === 'IA_PEDAGOGIQUE').length;
 
     return (
@@ -150,8 +151,8 @@ export const ResidanatEmdAnnalesViews: React.FC<ResidanatEmdAnnalesViewsProps> =
                 Préparation Complète au Résidanat de Médecine
               </h1>
               <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                Banque vérifiée de <span className="font-mono font-semibold tabular-nums">{curatedCount}</span> QCM documentés couvrant 22 spécialités médicales, chirurgicales et fondamentales
-                {aiCount > 0 ? ` (+ ${aiCount} QCM IA sauvegardés localement)` : ''}. Chaque question inclut une correction scientifique complète et l’analyse des distracteurs.
+                Base pédagogique hors-ligne : <span className="font-mono font-semibold tabular-nums">{curatedCount}</span> QCM d’entraînement couvrant 22 spécialités. Annales originales vérifiées : <span className="font-mono font-semibold tabular-nums">{archiveCount}</span> question(s) avec document, page et numéro contrôlés.
+                {aiCount > 0 ? ` (+ ${aiCount} QCM générés par IA, clairement identifiés)` : ''}.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -194,9 +195,9 @@ export const ResidanatEmdAnnalesViews: React.FC<ResidanatEmdAnnalesViewsProps> =
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-slate-100 dark:border-slate-800">
             <div>
-              <p className="text-xs text-slate-500 dark:text-slate-400">QCM vérifiés hors-ligne</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Annales originales vérifiées</p>
               <p className="text-xl font-bold font-mono tabular-nums text-slate-900 dark:text-slate-100">
-                {allQuestions.length}
+                {archiveCount}
               </p>
             </div>
             <div>
@@ -718,7 +719,8 @@ export const ResidanatEmdAnnalesViews: React.FC<ResidanatEmdAnnalesViewsProps> =
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
               {filteredArchives.map((rec) => {
-                const available = rec.availability === 'DISPONIBLE_SERIE_VERIFIEE';
+                const available = rec.availability !== 'INDISPONIBLE_LOCALEMENT';
+                const pedagogical = rec.availability === 'DISPONIBLE_SERIE_PEDAGOGIQUE';
                 return (
                   <tr key={rec.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/30">
                     <td className="py-3.5 px-4 font-mono tabular-nums font-semibold text-slate-900 dark:text-slate-100">
@@ -729,6 +731,7 @@ export const ResidanatEmdAnnalesViews: React.FC<ResidanatEmdAnnalesViewsProps> =
                       {rec.examType}
                     </td>
                     <td className="py-3.5 px-4">
+                      {pedagogical && <p className="mb-1 text-[11px] font-semibold text-amber-700 dark:text-amber-300">Entraînement pédagogique — pas une annale originale</p>}
                       <p className="font-medium text-slate-900 dark:text-slate-100">{rec.specialty}</p>
                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{rec.sourceNote}</p>
                     </td>
@@ -742,7 +745,7 @@ export const ResidanatEmdAnnalesViews: React.FC<ResidanatEmdAnnalesViewsProps> =
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-medium hover:bg-blue-700"
                         >
                           <BookMarked className="w-3.5 h-3.5" />
-                          Ouvrir la série
+                          {pedagogical ? "Ouvrir l’entraînement" : "Ouvrir la série"}
                         </button>
                       ) : (
                         <span className="inline-flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">

@@ -8,7 +8,7 @@ export const HISTORICAL_ARCHIVES: HistoricalExamRecord[] = [
     specialty: 'Épreuve Transversale Préclinique & Clinique',
     examType: 'Résidanat',
     questionCount: 15,
-    availability: 'DISPONIBLE_SERIE_VERIFIEE',
+    availability: 'DISPONIBLE_SERIE_PEDAGOGIQUE',
     linkedQuestionIds: [
       'RES-CARD-001', 'RES-CARD-002', 'RES-PNEU-001', 'RES-PNEU-003', 'RES-NEUR-001',
       'RES-GAST-001', 'RES-NEPH-001', 'RES-ENDO-001', 'RES-HEM-001', 'RES-INF-001',
@@ -24,7 +24,7 @@ export const HISTORICAL_ARCHIVES: HistoricalExamRecord[] = [
     specialty: 'Sciences Fondamentales (Anatomie, Physiologie, Biochimie, Pharmacologie)',
     examType: 'Résidanat',
     questionCount: 12,
-    availability: 'DISPONIBLE_SERIE_VERIFIEE',
+    availability: 'DISPONIBLE_SERIE_PEDAGOGIQUE',
     linkedQuestionIds: [
       'RES-ANAT-001', 'RES-ANAT-003', 'RES-ANAT-005', 'RES-PHYS-001',
       'RES-PHYS-002', 'RES-PHYS-004', 'RES-BIOC-001', 'RES-BIOC-002',
@@ -40,7 +40,7 @@ export const HISTORICAL_ARCHIVES: HistoricalExamRecord[] = [
     specialty: 'Pathologie Médicale & Urgences',
     examType: 'Résidanat',
     questionCount: 12,
-    availability: 'DISPONIBLE_SERIE_VERIFIEE',
+    availability: 'DISPONIBLE_SERIE_PEDAGOGIQUE',
     linkedQuestionIds: [
       'RES-CARD-003', 'RES-CARD-006', 'RES-PNEU-002', 'RES-PNEU-004',
       'RES-NEUR-003', 'RES-GAST-002', 'RES-NEPH-002', 'RES-ENDO-002',
@@ -56,7 +56,7 @@ export const HISTORICAL_ARCHIVES: HistoricalExamRecord[] = [
     specialty: 'Mère-Enfant & Chirurgie',
     examType: 'Résidanat',
     questionCount: 10,
-    availability: 'DISPONIBLE_SERIE_VERIFIEE',
+    availability: 'DISPONIBLE_SERIE_PEDAGOGIQUE',
     linkedQuestionIds: [
       'RES-PED-002', 'RES-PED-003', 'RES-PED-004', 'RES-PED-005',
       'RES-GYN-002', 'RES-GYN-003', 'RES-GYN-004',
@@ -73,7 +73,7 @@ export const HISTORICAL_ARCHIVES: HistoricalExamRecord[] = [
     examType: 'EMD',
     yearLevel: 1,
     questionCount: 10,
-    availability: 'DISPONIBLE_SERIE_VERIFIEE',
+    availability: 'DISPONIBLE_SERIE_PEDAGOGIQUE',
     linkedQuestionIds: [
       'RES-ANAT-001', 'RES-ANAT-004', 'RES-BIOC-001', 'RES-BIOC-006',
       'RES-HIST-001', 'RES-HIST-002', 'RES-HIST-003',
@@ -89,7 +89,7 @@ export const HISTORICAL_ARCHIVES: HistoricalExamRecord[] = [
     examType: 'EMD',
     yearLevel: 2,
     questionCount: 10,
-    availability: 'DISPONIBLE_SERIE_VERIFIEE',
+    availability: 'DISPONIBLE_SERIE_PEDAGOGIQUE',
     linkedQuestionIds: [
       'RES-ANAT-002', 'RES-ANAT-003', 'RES-ANAT-005', 'RES-ANAT-006',
       'RES-PHYS-001', 'RES-PHYS-002', 'RES-PHYS-003', 'RES-PHYS-004',
@@ -105,7 +105,7 @@ export const HISTORICAL_ARCHIVES: HistoricalExamRecord[] = [
     examType: 'EMD',
     yearLevel: 3,
     questionCount: 12,
-    availability: 'DISPONIBLE_SERIE_VERIFIEE',
+    availability: 'DISPONIBLE_SERIE_PEDAGOGIQUE',
     linkedQuestionIds: [
       'RES-PHAR-001', 'RES-PHAR-002', 'RES-PHAR-004',
       'RES-MICR-001', 'RES-MICR-002', 'RES-MICR-003',
@@ -122,7 +122,7 @@ export const HISTORICAL_ARCHIVES: HistoricalExamRecord[] = [
     examType: 'EMD',
     yearLevel: 4,
     questionCount: 12,
-    availability: 'DISPONIBLE_SERIE_VERIFIEE',
+    availability: 'DISPONIBLE_SERIE_PEDAGOGIQUE',
     linkedQuestionIds: [
       'RES-CARD-001', 'RES-CARD-004', 'RES-CARD-005',
       'RES-PNEU-001', 'RES-PNEU-003', 'RES-GAST-001',
@@ -139,7 +139,7 @@ export const HISTORICAL_ARCHIVES: HistoricalExamRecord[] = [
     examType: 'EMD',
     yearLevel: 5,
     questionCount: 12,
-    availability: 'DISPONIBLE_SERIE_VERIFIEE',
+    availability: 'DISPONIBLE_SERIE_PEDAGOGIQUE',
     linkedQuestionIds: [
       'RES-NEUR-001', 'RES-NEUR-002', 'RES-NEUR-004',
       'RES-ENDO-001', 'RES-ENDO-003', 'RES-ENDO-004',
@@ -156,7 +156,7 @@ export const HISTORICAL_ARCHIVES: HistoricalExamRecord[] = [
     examType: 'EMD',
     yearLevel: 6,
     questionCount: 12,
-    availability: 'DISPONIBLE_SERIE_VERIFIEE',
+    availability: 'DISPONIBLE_SERIE_PEDAGOGIQUE',
     linkedQuestionIds: [
       'RES-HEM-001', 'RES-HEM-002', 'RES-HEM-006',
       'RES-CHIR-001', 'RES-CHIR-002', 'RES-CHIR-004',
@@ -165,38 +165,28 @@ export const HISTORICAL_ARCHIVES: HistoricalExamRecord[] = [
     ],
     sourceNote: 'Série de révision EMD 6ème année médecine.',
   },
-  // Annales 2002-2021 — transparence stricte sur la disponibilité locale
+  // Sessions explicitly listed in the public Ency Education index.
+  // These are source leads only: no question is imported until the underlying
+  // exam file, page, question number and university/year are independently checked.
   ...[
-    { year: 2021, university: 'Alger' as const },
-    { year: 2020, university: 'Oran' as const },
-    { year: 2019, university: 'Constantine' as const },
-    { year: 2018, university: 'Annaba' as const },
-    { year: 2017, university: 'Blida' as const },
-    { year: 2016, university: 'Tizi Ouzou' as const },
-    { year: 2015, university: 'Sétif' as const },
-    { year: 2014, university: 'Batna' as const },
-    { year: 2013, university: 'Tlemcen' as const },
-    { year: 2012, university: 'Sidi Bel Abbès' as const },
-    { year: 2011, university: 'Alger' as const },
-    { year: 2010, university: 'Oran' as const },
-    { year: 2009, university: 'Constantine' as const },
-    { year: 2008, university: 'Annaba' as const },
-    { year: 2007, university: 'Blida' as const },
-    { year: 2006, university: 'Alger' as const },
-    { year: 2005, university: 'Oran' as const },
-    { year: 2004, university: 'Constantine' as const },
-    { year: 2003, university: 'Annaba' as const },
-    { year: 2002, university: 'Alger' as const },
+    ...[2026, 2025, 2024, 2023, 2022, 2021, 2019, 2018, 2017, 2016, 2015, 2014, 2013, 2012, 2011, 2010].map((year) => ({ year, university: 'Constantine' as const })),
+    ...[2022, 2021, 2019, 2018, 2017, 2016, 2015, 2014, 2013, 2012, 2011].map((year) => ({ year, university: 'Alger' as const })),
+    ...[2022, 2021, 2016, 2015, 2014].map((year) => ({ year, university: 'Oran' as const })),
+    ...[2015, 2014, 2012, 2010].map((year) => ({ year, university: 'Annaba' as const })),
+    { year: 2012, university: 'Sétif' as const },
+    { year: 2011, university: 'Sidi Bel Abbès' as const },
+    { year: 2009, university: 'Tlemcen' as const },
   ].map((item) => ({
-    id: `ARC-${item.year}-${item.university.slice(0, 3).toUpperCase()}-RES`,
+    id: `ARC-${item.year}-${item.university.replace(/[^A-Z]/gi, '').slice(0, 3).toUpperCase()}-RES`,
     year: item.year,
     university: item.university,
-    specialty: 'Concours National de Résidanat (Archive historique)',
+    specialty: 'Concours National de Résidanat (session référencée dans un index public)',
     examType: 'Résidanat' as const,
     questionCount: 0,
     availability: 'INDISPONIBLE_LOCALEMENT' as const,
     linkedQuestionIds: [] as string[],
-    sourceNote:
-      `Copie officielle complète de la session ${item.year} (${item.university}) non disponible dans le dépôt local hors-ligne. Aucune question n’a été fabriquée pour combler cette année.`,
+    sourceNote: item.year === 2026 && item.university === 'Constantine'
+      ? 'PDF consulté : https://www.ency-education.net/_files/ugd/414868_6e1fffbc5cb04e8f92dca104f1c70290.pdf?index=true — la page de garde confirme le concours du 17 octobre 2026 et 150 questions ; le fichier compte 21 pages. Les questions ne sont pas encore intégrées au QCM hors-ligne et doivent être extraites puis contrôlées individuellement.'
+      : 'Session répertoriée dans l’index public Ency Education (https://www.ency-education.net/medecine-residanat/1). Le fichier source original doit être ouvert et vérifié avant extraction ; aucune question ni pagination n’est supposée.',
   })),
 ];

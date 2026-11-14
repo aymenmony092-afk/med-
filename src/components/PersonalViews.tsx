@@ -4,6 +4,7 @@ import {
   Bookmark,
   CheckCircle2,
   Download,
+  Upload,
   Moon,
   Play,
   RotateCcw,
@@ -40,6 +41,7 @@ interface PersonalViewsProps {
   notifications: ArabicNotificationLog[];
   onTriggerArabicTestNotification: (category: ArabicNotificationLog['category']) => void;
   onExportBackup: () => void;
+  onImportBackup: (file: File) => Promise<void>;
   onResetProgress: () => void;
   pwaInstall: {
     isInstallable: boolean;
@@ -75,12 +77,22 @@ export const PersonalViews: React.FC<PersonalViewsProps> = ({
   notifications,
   onTriggerArabicTestNotification,
   onExportBackup,
+  onImportBackup,
   onResetProgress,
   pwaInstall,
   onNavigate,
 }) => {
   const [favFilter, setFavFilter] = useState<'all' | FavoriteEntry['type']>('all');
   const [confirmReset, setConfirmReset] = useState(false);
+  const specialtyBreakdown = useMemo(
+    () =>
+      ALL_SPECIALTIES.map((spec) => {
+        const st = progress.specialtyStats[spec] || { answered: 0, correct: 0 };
+        const pct = st.answered > 0 ? Math.round((st.correct / st.answered) * 100) : null;
+        return { specialty: spec, ...st, pct };
+      }),
+    [progress.specialtyStats]
+  );
 
   // 1. FAVORIS
   if (mode === 'favoris') {
@@ -245,6 +257,11 @@ export const PersonalViews: React.FC<PersonalViewsProps> = ({
                     </div>
                   </div>
                   <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{q.stem}</p>
+                  {err.lastSelectedIndex >= 0 && err.lastSelectedIndex < q.choices.length && (
+                    <p className="text-xs text-rose-700 dark:text-rose-400">
+                      Votre dernière réponse : {q.choices[err.lastSelectedIndex]}
+                    </p>
+                  )}
                   <p className="text-xs text-emerald-700 dark:text-emerald-400">
                     Réponse juste : {q.choices[q.correctIndex]}
                   </p>
@@ -262,14 +279,6 @@ export const PersonalViews: React.FC<PersonalViewsProps> = ({
   if (mode === 'statistiques') {
     const successPct =
       progress.totalAnswered > 0 ? Math.round((progress.totalCorrect / progress.totalAnswered) * 100) : 0;
-
-    const specialtyBreakdown = useMemo(() => {
-      return ALL_SPECIALTIES.map((spec) => {
-        const st = progress.specialtyStats[spec] || { answered: 0, correct: 0 };
-        const pct = st.answered > 0 ? Math.round((st.correct / st.answered) * 100) : null;
-        return { specialty: spec, ...st, pct };
-      });
-    }, [progress.specialtyStats]);
 
     const weakSubjects = specialtyBreakdown
       .filter((s) => s.answered >= 1 && (s.pct ?? 100) < 65)
@@ -737,6 +746,20 @@ export const PersonalViews: React.FC<PersonalViewsProps> = ({
               <Download className="w-4 h-4" />
               Exporter mes données hors-ligne (JSON)
             </button>
+            <label className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer">
+              <Upload className="w-4 h-4" />
+              Importer une sauvegarde (JSON)
+              <input
+                type="file"
+                accept=".json,application/json"
+                className="sr-only"
+                onChange={(event) => {
+                  const file = event.currentTarget.files?.[0];
+                  if (file) void onImportBackup(file);
+                  event.currentTarget.value = '';
+                }}
+              />
+            </label>
           </div>
 
           <div>

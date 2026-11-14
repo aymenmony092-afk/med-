@@ -1,0 +1,189 @@
+import React, { useEffect, useState } from 'react';
+import { FileText, FileUp, Trash2, Download, Sparkles, Loader2, BookOpen, AlertCircle } from 'lucide-react';
+import type { QCMQuestion } from '../types/med';
+import { medDzDb } from '../db/medDzDb';
+import { DocumentDiscussionPanel } from './DocumentDiscussionPanel';
+import { GeminiLibrarySearchPanel } from './GeminiLibrarySearchPanel';
+
+type StoredDocument = { id: string; name: string; mimeType: string; size: number; addedAt: string; blob: Blob; classification?: { title: string; documentType: string; specialty: string; university: string; academicYear: string; language: string; keywords: string[]; confidence: number; moderationReason: string; communityEligible: boolean } };
+
+interface Props { onAddAIQuestions: (questions: QCMQuestion[]) => Promise<void>; }
+
+const MAX_FILE_BYTES = 13 * 1024 * 1024;
+const ACCEPTED = ['application/pdf', 'image/png', 'image/jpeg', 'image/webp', 'text/plain'];
+
+export const DocumentsLibraryView: React.FC<Props> = ({ onAddAIQuestions }) => {
+  const [documents, setDocuments] = useState<StoredDocument[]>([]);
+  const [selectedId, setSelectedId] = useState('');
+  const [count, setCount] = useState(5);
+  const [specialty, setSpecialty] = useState('Médecine générale');
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+
+  const refresh = async () => {
+    const saved = await medDzDb.getDocuments();
+    setDocuments(saved.sort((a, b) => b.addedAt.localeCompare(a.addedAt)));
+    if (!selectedId && saved[0]) setSelectedId(saved[0].id);
+  };
+
+  useEffect(() => { void refresh(); }, []);
+
+  const classifyDocument = async (doc: StoredDocument) => {
+    setError('');
+    setMessage('Analyse et classification automatiques en cours…');
+    try {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ''));
+        reader.onerror = () => reject(new Error('Lecture du fichier impossible.'));
+        reader.readAsDataURL(doc.blob);
+      });
+      const response = await fetch('/api/ai/classify-document', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileName: doc.name, mimeType: doc.mimeType, fileBase64: dataUrl.split(',')[1] || '' }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Classification indisponible.');
+      await medDzDb.saveDocument({ ...doc, classification: result.classification });
+      await refresh();
+      setMessage('Document classé par Gemini. Il reste privé sur cet appareil : la publication collective nécessite une base centrale, une identité de compte et la vérification des droits.');
+    } catch (err) {
+      setMessage('Le document est conservé localement. Vous pouvez relancer sa classification lorsque le service Gemini sera disponible.');
+      setError(err instanceof Error ? err.message : 'Classification indisponible.');
+    }
+  };
+
+  const upload = async (file?: File) => {
+    if (!file) return;
+    setError(''); setMessage('');
+    if (!ACCEPTED.includes(file.type)) {
+      setError('Format non pris en charge. Pour le moment : PDF, PNG, JPG, WEBP ou TXT.');
+      return;
+    }
+    if (file.size > MAX_FILE_BYTES) {
+      setError('Le fichier dépasse la limite de 13 Mo.');
+      return;
+    }
+    const doc: StoredDocument = {
+      id: `DOC-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      name: file.name, mimeType: file.type, size: file.size,
+      addedAt: new Date().toISOString(), blob: file,
+    };
+    await medDzDb.saveDocument(doc);
+    setSelectedId(doc.id);
+    await refresh();
+    setMessage('Document enregistré localement.');
+    await classifyDocument(doc);
+  };
+
+  const remove = async (doc: StoredDocument) => {
+    if (!window.confirm(`Supprimer « ${doc.name} » de la bibliothèque ?`)) return;
+    await medDzDb.deleteDocument(doc.id);
+    if (selectedId === doc.id) setSelectedId('');
+    await refresh();
+  };
+
+  const generate = async () => {
+    const doc = documents.find((item) => item.id === selectedId);
+    if (!doc || loading) return;
+    setLoading(true); setError(''); setMessage('');
+    try {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ''));
+        reader.onerror = () => reject(new Error('Lecture du fichier impossible.'));
+        reader.readAsDataURL(doc.blob);
+      });
+      const fileBase64 = dataUrl.split(',')[1] || '';
+      const response = await fetch('/api/ai/generate-qcm-from-document', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileName: doc.name, mimeType: doc.mimeType, fileBase64, count, specialty }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Erreur pendant la génération.');
+      const questions = Array.isArray(result.questions) ? result.questions as QCMQuestion[] : [];
+      if (!questions.length) throw new Error('Le document ne contient pas assez de contenu lisible pour créer des QCM fiables.');
+      await onAddAIQuestions(questions);
+      setMessage(`${questions.length} QCM créés et ajoutés à la Banque QCM. Ils sont identifiés comme contenus générés par IA, pas comme annales originales.`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur inconnue.');
+    } finally { setLoading(false); }
+  };
+
+  const selected = documents.find((item) => item.id === selectedId);
+
+  return <div className="space-y-6">
+    <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 space-y-3">
+      <div className="flex items-center gap-3">
+        <div className="rounded-xl bg-blue-50 dark:bg-blue-950/50 p-3 text-blue-700 dark:text-blue-300"><FileUp className="h-6 w-6" /></div>
+        <div><h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">Documents médicaux & QCM IA</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Importez vos propres documents, conservez-les dans MED DZ et générez des QCM à partir de leur contenu.</p></div>
+      </div>
+      <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-blue-300 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20 p-7 text-center hover:bg-blue-50 dark:hover:bg-blue-950/40">
+        <FileUp className="h-7 w-7 text-blue-600" />
+        <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">Choisir un document à importer</span>
+        <span className="text-xs text-slate-500">PDF, PNG, JPG, WEBP ou TXT · 13 Mo maximum</span>
+        <input type="file" accept=".pdf,.png,.jpg,.jpeg,.webp,.txt,application/pdf,image/png,image/jpeg,image/webp,text/plain" className="hidden" onChange={(event) => { void upload(event.target.files?.[0]); event.currentTarget.value = ''; }} />
+      </label>
+      <p className="text-xs text-slate-500 dark:text-slate-400">Les fichiers sont conservés localement sur cet appareil. Pour analyser un document avec Gemini, son contenu est envoyé au service IA configuré sur le serveur.</p>
+    </section>
+
+    <GeminiLibrarySearchPanel />
+
+    {error && <div className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{error}</div>}
+    {message && <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{message}</div>}
+
+    <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-4">
+      <h2 className="font-semibold text-slate-900 dark:text-slate-100">Ma bibliothèque ({documents.length})</h2>
+      {!documents.length ? <div className="py-8 text-center text-sm text-slate-500"><BookOpen className="mx-auto mb-2 h-8 w-8 opacity-50" />Aucun document importé pour le moment.</div> :
+        <div className="space-y-2">{documents.map((doc) => <div key={doc.id} className={`flex items-center gap-3 rounded-xl border p-3 ${selectedId === doc.id ? 'border-blue-400 bg-blue-50/60 dark:bg-blue-950/20' : 'border-slate-200 dark:border-slate-700'}`}>
+          <FileText className="h-5 w-5 shrink-0 text-blue-600" />
+          <button className="min-w-0 flex-1 text-left" onClick={() => setSelectedId(doc.id)}>
+            <span className="block truncate text-sm font-semibold text-slate-800 dark:text-slate-100">{doc.name}</span>
+            <span className="text-xs text-slate-500">{(doc.size / 1024 / 1024).toFixed(2)} Mo · {new Date(doc.addedAt).toLocaleDateString('fr-FR')}{doc.classification ? ` · ${doc.classification.documentType} · ${doc.classification.specialty || 'Spécialité inconnue'}` : ' · Non classé'}</span>
+          </button>
+          <a className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800" href={URL.createObjectURL(doc.blob)} download={doc.name} aria-label="Télécharger"><Download className="h-4 w-4" /></a>
+          <button className="rounded-lg p-2 text-rose-500 hover:bg-rose-50" onClick={() => void remove(doc)} aria-label="Supprimer"><Trash2 className="h-4 w-4" /></button>
+        </div>)}</div>}
+    </section>
+
+    {selected && !selected.classification && <section className="rounded-2xl border border-amber-200 dark:border-amber-900 bg-amber-50/60 dark:bg-amber-950/20 p-4 space-y-2">
+      <p className="text-sm text-amber-800 dark:text-amber-200">Ce document n’a pas encore été classé par Gemini.</p>
+      <button onClick={() => void classifyDocument(selected)} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">Relancer la classification IA</button>
+    </section>}
+
+    {selected?.classification && <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-3">
+      <h2 className="font-semibold text-slate-900 dark:text-slate-100">Classification automatique Gemini</h2>
+      <div className="grid gap-2 sm:grid-cols-2 text-sm">
+        <p><span className="text-slate-500">Type :</span> {selected.classification.documentType}</p>
+        <p><span className="text-slate-500">Spécialité :</span> {selected.classification.specialty || 'Non déterminée'}</p>
+        <p><span className="text-slate-500">Université :</span> {selected.classification.university || 'Non déterminée'}</p>
+        <p><span className="text-slate-500">Année :</span> {selected.classification.academicYear || 'Non déterminée'}</p>
+        <p><span className="text-slate-500">Langue :</span> {selected.classification.language || 'Non déterminée'}</p>
+        <p><span className="text-slate-500">Confiance IA :</span> {(selected.classification.confidence * 100).toFixed(0)}%</p>
+      </div>
+      {!!selected.classification.keywords.length && <p className="text-xs text-slate-500">Mots-clés : {selected.classification.keywords.join(' · ')}</p>}
+      <p className="rounded-lg bg-amber-50 dark:bg-amber-950/30 p-3 text-xs text-amber-800 dark:text-amber-200">{selected.classification.moderationReason || 'La classification IA est indicative. Le document reste privé.'}</p>
+    </section>}
+    <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 space-y-4">
+      <div className="flex items-center gap-2"><Sparkles className="h-5 w-5 text-blue-600" /><h2 className="font-semibold text-slate-900 dark:text-slate-100">Créer des QCM à partir du document</h2></div>
+      <p className="text-sm text-slate-600 dark:text-slate-300">Gemini analyse le fichier sélectionné et produit des questions nouvelles fondées sur son contenu. Les QCM générés restent distincts des annales historiques.</p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className="text-xs font-medium text-slate-600 dark:text-slate-300">Spécialité
+          <input value={specialty} onChange={(e) => setSpecialty(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-sm" />
+        </label>
+        <label className="text-xs font-medium text-slate-600 dark:text-slate-300">Nombre de QCM
+          <input type="number" min={1} max={100} value={count} onChange={(e) => setCount(Math.min(100, Math.max(1, Number(e.target.value) || 1)))} className="mt-1 w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-sm" /><span className="mt-1 block text-[11px] text-slate-500">De 1 à 100 questions, selon le contenu exploitable.</span>
+        </label>
+      </div>
+      <button disabled={!selected || loading} onClick={() => void generate()} className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50">
+        {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Analyse du document…</> : <><Sparkles className="h-4 w-4" /> Générer les QCM avec Gemini</>}
+      </button>
+      {selected && <p className="text-xs text-slate-500">Document sélectionné : {selected.name}</p>}
+      <p className="flex items-start gap-2 text-xs text-amber-700 dark:text-amber-300"><AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /> Les réponses générées doivent être relues et validées par rapport au document et aux références médicales. Une page source est indiquée lorsque Gemini peut la repérer.</p>
+    </section>
+
+    <DocumentDiscussionPanel key={selected?.id || 'no-document'} document={selected ? { name: selected.name, mimeType: selected.mimeType, blob: selected.blob } : undefined} />
+  </div>;
+};

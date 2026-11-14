@@ -4,12 +4,14 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI, ThinkingLevel, Type } from '@google/genai';
+import { registerGeminiFileSearchRoutes } from './src/server/geminiFileSearch';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-app.use(express.json({ limit: '2mb' }));
+app.use(express.json({ limit: '22mb' }));
+registerGeminiFileSearchRoutes(app);
 
 function getGeminiClient(): GoogleGenAI | null {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -309,12 +311,18 @@ Consignes strictes :
 
 app.post('/api/ai/generate-qcm', async (req, res) => {
   try {
-    const { specialty, topic, difficulty, count } = req.body as {
+    const { specialty, topic, difficulty, count, university, targetYear } = req.body as {
       specialty?: string;
       topic?: string;
       difficulty?: 'Facile' | 'Moyen' | 'Difficile';
       count?: number;
+      university?: string;
+      targetYear?: number;
     };
+    const universityContext = typeof university === 'string' ? university.trim().slice(0, 100) : '';
+    const yearContext = Number.isInteger(targetYear) && Number(targetYear) >= 2000 && Number(targetYear) <= new Date().getFullYear()
+      ? Number(targetYear)
+      : undefined;
 
     const ai = getGeminiClient();
     if (!ai) {
@@ -374,20 +382,23 @@ Règles strictes :
     }>;
 
     const normalized = items
-      .filter((q) => q && q.stem && Array.isArray(q.choices) && q.choices.length === 5)
+      .filter((q) => q && typeof q.stem === 'string' && q.stem.trim() && Array.isArray(q.choices) && q.choices.length === 5 && q.choices.every((choice) => typeof choice === 'string' && choice.trim()) && Number.isInteger(q.correctIndex) && q.correctIndex >= 0 && q.correctIndex <= 4 && typeof q.explanation === 'string' && q.explanation.trim())
       .map((q, idx) => ({
         id: `IA-${Date.now()}-${idx + 1}`,
         specialty: chosenSpecialty,
         yearLevel: 'Résidanat',
         stem: q.stem,
         choices: q.choices,
-        correctIndex: Math.min(Math.max(Number(q.correctIndex) || 0, 0), 4),
+        correctIndex: Number(q.correctIndex),
         explanation: q.explanation,
         incorrectExplanations: q.incorrectExplanations,
         difficulty: chosenDifficulty,
         sourceType: 'IA_PEDAGOGIQUE' as const,
-        sourceLabel: 'Entraînement généré par IA (non issu d’une annale officielle)',
-        reference: q.reference || `Référentiel académique de ${chosenSpecialty}`,
+        sourceLabel: universityContext && yearContext
+          ? `Entraînement IA — thème de ${universityContext} ${yearContext} (non annale officielle)`
+          : 'Entraînement généré par IA (non issu d’une annale officielle)',
+        reference: q.reference ? `Référence proposée par IA — à vérifier : ${q.reference}` : `Référence académique à vérifier — ${chosenSpecialty}`,
+        correctionStatus: 'NON_VERIFIEE' as const,
       }));
 
     return res.json({ questions: normalized });
@@ -396,6 +407,254 @@ Règles strictes :
     return res.status(500).json({
       error: 'Impossible de générer les QCM d’entraînement pour le moment.',
     });
+  }
+});
+
+
+
+app.post('/api/ai/generate-qcm-from-document', async (req, res) => {
+  try {
+    const { fileName, mimeType, fileBase64, count, specialty } = req.body as {
+      fileName?: string; mimeType?: string; fileBase64?: string; count?: number; specialty?: string;
+    };
+    const allowedTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/webp', 'text/plain'];
+    if (!fileName || typeof fileName !== 'string' || !fileBase64 || typeof fileBase64 !== 'string' ||
+        !mimeType || !allowedTypes.includes(mimeType)) {
+      return res.status(400).json({ error: 'Format non pris en charge. Importez un PDF, une image ou un fichier TXT.' });
+    }
+    if (fileBase64.length > 18_000_000) {
+      return res.status(413).json({ error: 'Fichier trop volumineux. La limite actuelle est de 13 Mo environ.' });
+    }
+    const ai = getGeminiClient();
+    if (!ai) {
+      return res.status(503).json({ error: 'Service IA indisponible : la clé serveur GEMINI_API_KEY n’est pas configurée.' });
+    }
+    const safeCount = Math.min(Math.max(Number(count) || 5, 1), 100);
+    const chosenSpecialty = typeof specialty === 'string' && specialty.trim() ? specialty.trim().slice(0, 80) : 'Médecine générale';
+    const safeName = fileName.slice(0, 180);
+    const prompt = `Tu es un professeur de médecine et concepteur de QCM pour le Résidanat algérien.
+Analyse le document joint intitulé "${safeName}" et crée exactement ${safeCount} QCM d'entraînement STRICTEMENT fondés sur son contenu.
+Spécialité : ${chosenSpecialty}.
+
+RÈGLES IMPÉRATIVES :
+- Ne complète pas avec des faits absents du document si cela change la réponse attendue.
+- Chaque QCM contient exactement 5 propositions A à E et une seule bonne réponse.
+- Fournis une explication pédagogique et explique pourquoi les autres propositions sont fausses.
+- Si le document est un sujet d'examen, ne présente pas les nouvelles questions comme des questions historiques copiées : ce sont des QCM générés à partir du document.
+- Pour chaque question, indique le numéro de page PDF si tu peux le déterminer. Pour une image ou un texte sans pagination, laisse sourcePage à 0.
+- Si le document est illisible ou ne contient pas assez de matière médicale, retourne un tableau vide plutôt que d'inventer.
+- Réponds en français médical clair.`;
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.8-flash',
+      contents: [{ role: 'user', parts: [
+        { text: prompt },
+        { inlineData: { mimeType, data: fileBase64 } },
+      ] }],
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              stem: { type: Type.STRING },
+              choices: { type: Type.ARRAY, items: { type: Type.STRING } },
+              correctIndex: { type: Type.INTEGER },
+              explanation: { type: Type.STRING },
+              incorrectExplanations: { type: Type.STRING },
+              sourcePage: { type: Type.INTEGER },
+              sourceExcerpt: { type: Type.STRING },
+            },
+            required: ['stem', 'choices', 'correctIndex', 'explanation', 'incorrectExplanations'],
+          },
+        },
+      },
+    });
+    const parsed = JSON.parse((response.text || '[]').trim()) as Array<{
+      stem: string; choices: string[]; correctIndex: number; explanation: string;
+      incorrectExplanations: string; sourcePage?: number; sourceExcerpt?: string;
+    }>;
+    const questions = (Array.isArray(parsed) ? parsed : [])
+      .filter((q) => q && typeof q.stem === 'string' && q.stem.trim() &&
+        Array.isArray(q.choices) && q.choices.length === 5 &&
+        q.choices.every((choice) => typeof choice === 'string' && choice.trim()) &&
+        Number.isInteger(q.correctIndex) && q.correctIndex >= 0 && q.correctIndex <= 4 &&
+        typeof q.explanation === 'string' && q.explanation.trim())
+      .map((q, index) => ({
+        id: `DOC-IA-${Date.now()}-${index + 1}`,
+        specialty: chosenSpecialty,
+        yearLevel: 'Résidanat' as const,
+        stem: q.stem,
+        choices: q.choices as [string, string, string, string, string],
+        correctIndex: q.correctIndex,
+        explanation: q.explanation,
+        incorrectExplanations: q.incorrectExplanations || '',
+        difficulty: 'Moyen' as const,
+        sourceType: 'IA_PEDAGOGIQUE' as const,
+        sourceLabel: `QCM généré par IA depuis le document importé : ${safeName}`,
+        sourceDocumentTitle: safeName,
+        sourcePage: Number.isInteger(q.sourcePage) && Number(q.sourcePage) > 0 ? Number(q.sourcePage) : undefined,
+        sourceExcerpt: typeof q.sourceExcerpt === 'string' ? q.sourceExcerpt.slice(0, 500) : undefined,
+        reference: `Document utilisateur : ${safeName} (QCM généré par IA, non annale originale)`,
+        correctionStatus: 'NON_VERIFIEE' as const,
+      }));
+    return res.json({ questions, generatedCount: questions.length, aiGenerated: true });
+  } catch (err) {
+    console.error('Error in /api/ai/generate-qcm-from-document:', err);
+    return res.status(500).json({ error: 'Impossible d’analyser ce document. Vérifiez sa lisibilité puis réessayez.' });
+  }
+});
+
+app.post('/api/ai/chat', async (req, res) => {
+  try {
+    const rawMessages = Array.isArray(req.body?.messages) ? req.body.messages : [];
+    const validMessages = rawMessages
+      .filter((item: any) => item && (item.role === 'user' || item.role === 'assistant') && typeof item.content === 'string')
+      .slice(-12);
+    while (validMessages.length && validMessages[0].role === 'assistant') validMessages.shift();
+    const messages = validMessages
+      .map((item: any) => ({ role: item.role === 'assistant' ? 'model' : 'user', parts: [{ text: item.content.slice(0, 12000) }] }));
+
+    if (!messages.length || messages[messages.length - 1].role !== 'user') {
+      return res.status(400).json({ error: 'Veuillez saisir une question.' });
+    }
+
+    const ai = getGeminiClient();
+    if (!ai) {
+      return res.status(503).json({ error: 'Service IA indisponible : la clé serveur GEMINI_API_KEY n’est pas configurée.' });
+    }
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.8-flash',
+      contents: messages,
+      config: {
+        systemInstruction: `Tu es l'assistant pédagogique officiel de l'application MED DZ, spécialisé dans les études médicales et la préparation au Résidanat algérien.
+Réponds dans la langue utilisée par l'étudiant (français ou arabe). Sois clair, structuré, précis et pédagogique.
+Tu peux expliquer les cours, détailler la physiopathologie, comparer les diagnostics, préparer des fiches, créer des QCM originaux avec cinq propositions et correction expliquée.
+N'invente jamais une annale, une année, une université, une source ou une recommandation. Si l'étudiant demande un sujet historique non fourni dans le contexte, indique que tu ne disposes pas du document source et propose un entraînement distinct clairement marqué comme généré par IA.
+Pour les questions cliniques, rappelle que la réponse est pédagogique et ne remplace pas l'évaluation d'un professionnel. Ne donne pas de diagnostic individuel définitif ni de prescription personnalisée.`,
+      },
+    });
+
+    const reply = (response.text || '').trim();
+    if (!reply) return res.status(502).json({ error: 'Gemini a retourné une réponse vide. Réessayez.' });
+    return res.json({ reply, model: 'gemini-3.8-flash' });
+  } catch (err: any) {
+    console.error('Error in /api/ai/chat:', err);
+    const status = typeof err?.status === 'number' ? err.status : 500;
+    if (status === 429 || String(err?.message || '').includes('RESOURCE_EXHAUSTED')) {
+      return res.status(429).json({ error: 'Quota Gemini atteint temporairement. Réessayez un peu plus tard.' });
+    }
+    if (status === 400 || status === 403 || String(err?.message || '').includes('API_KEY_INVALID')) {
+      return res.status(status === 400 ? 400 : 403).json({ error: 'La clé Gemini est invalide ou ses autorisations sont insuffisantes.' });
+    }
+    if (status === 404 || String(err?.message || '').includes('NOT_FOUND')) {
+      return res.status(404).json({ error: 'Le modèle Gemini configuré est introuvable ou non accessible pour cette clé.' });
+    }
+    return res.status(500).json({ error: 'Erreur du service Gemini. Vérifiez la connexion et réessayez.' });
+  }
+});
+
+app.post('/api/ai/document-chat', async (req, res) => {
+  try {
+    const { fileName, mimeType, fileBase64, messages } = req.body as {
+      fileName?: string; mimeType?: string; fileBase64?: string;
+      messages?: Array<{ role: 'user' | 'assistant'; text: string }>;
+    };
+    const allowedTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/webp', 'text/plain'];
+    if (!fileName || typeof fileName !== 'string' || !fileBase64 || typeof fileBase64 !== 'string' ||
+        !mimeType || !allowedTypes.includes(mimeType)) {
+      return res.status(400).json({ error: 'Document invalide ou format non pris en charge.' });
+    }
+    if (fileBase64.length > 18_000_000) return res.status(413).json({ error: 'Document trop volumineux pour la discussion.' });
+    const history = Array.isArray(messages) ? messages
+      .filter((m) => m && (m.role === 'user' || m.role === 'assistant') && typeof m.text === 'string')
+      .slice(-10) : [];
+    if (!history.length || history[history.length - 1].role !== 'user') {
+      return res.status(400).json({ error: 'Saisissez une question sur le document.' });
+    }
+    const ai = getGeminiClient();
+    if (!ai) return res.status(503).json({ error: 'Service Gemini non configuré sur le serveur.' });
+    const contents = history.map((m, index) => ({
+      role: m.role === 'assistant' ? 'model' : 'user',
+      parts: [
+        ...(index === 0 ? [
+          { text: 'Tu es le tuteur pédagogique attaché au document « ' + fileName.slice(0, 180) + ' ». Analyse le fichier joint comme source principale. Réponds dans la langue de l’étudiant. Distingue clairement « Dans le document » et « Complément externe » si tu ajoutes une connaissance extérieure. N’invente jamais de numéro de page, de citation ou de passage. Si l’information est absente ou illisible, dis-le. Explique avec rigueur médicale et rappelle que cela reste pédagogique.' },
+          { inlineData: { mimeType, data: fileBase64 } },
+        ] : []),
+        { text: m.text.slice(0, 8000) },
+      ],
+    }));
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.8-flash',
+      contents,
+      config: { systemInstruction: 'Réponds avec précision, pédagogie et transparence sur les limites du document fourni.' },
+    });
+    const reply = (response.text || '').trim();
+    if (!reply) return res.status(502).json({ error: 'Gemini a retourné une réponse vide.' });
+    return res.json({ reply, documentGrounded: true });
+  } catch (err) {
+    console.error('Error in /api/ai/document-chat:', err);
+    return res.status(500).json({ error: 'Impossible de discuter avec ce document pour le moment.' });
+  }
+});
+
+app.post('/api/ai/classify-document', async (req, res) => {
+  try {
+    const { fileName, mimeType, fileBase64 } = req.body as {
+      fileName?: string; mimeType?: string; fileBase64?: string;
+    };
+    const allowedTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/webp', 'text/plain'];
+    if (!fileName || typeof fileName !== 'string' || !fileBase64 || typeof fileBase64 !== 'string' ||
+        !mimeType || !allowedTypes.includes(mimeType)) {
+      return res.status(400).json({ error: 'Document invalide ou format non pris en charge.' });
+    }
+    if (fileBase64.length > 18_000_000) return res.status(413).json({ error: 'Document trop volumineux.' });
+    const ai = getGeminiClient();
+    if (!ai) return res.status(503).json({ error: 'Service Gemini non configuré sur le serveur.' });
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.8-flash',
+      contents: [{ role: 'user', parts: [
+        { text: 'Analyse ce document médical pour le catalogue MED DZ. Retourne uniquement les métadonnées visibles et fiables. Ne déduis jamais une université, une année ou un caractère officiel à partir du nom de fichier seul. Classe le type parmi course, summary, historical_exam, correction, qcm_series, book, other. historical_exam ne doit être attribué que si le document lui-même montre clairement qu’il s’agit d’un sujet d’examen passé. Évalue la lisibilité, détecte les données personnelles visibles et les indices de droits d’auteur ou de restriction. Un résultat IA ne constitue pas une preuve de droit de redistribution. Par défaut, communityEligible doit être false si les droits sont inconnus, si des données personnelles sont visibles, si le document est illisible ou si l’origine est incertaine. confidence entre 0 et 1. Les champs inconnus doivent être des chaînes vides. Fichier : ' + fileName.slice(0,180) },
+        { inlineData: { mimeType, data: fileBase64 } },
+      ] }],
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            title: { type: Type.STRING },
+            documentType: { type: Type.STRING, enum: ['course','summary','historical_exam','correction','qcm_series','book','other'] },
+            specialty: { type: Type.STRING },
+            university: { type: Type.STRING },
+            academicYear: { type: Type.STRING },
+            language: { type: Type.STRING },
+            keywords: { type: Type.ARRAY, items: { type: Type.STRING } },
+            readable: { type: Type.BOOLEAN },
+            containsPersonalData: { type: Type.BOOLEAN },
+            copyrightIndicators: { type: Type.STRING },
+            originEvidence: { type: Type.STRING },
+            communityEligible: { type: Type.BOOLEAN },
+            confidence: { type: Type.NUMBER },
+            moderationReason: { type: Type.STRING },
+          },
+          required: ['title','documentType','specialty','university','academicYear','language','keywords','readable','containsPersonalData','copyrightIndicators','originEvidence','communityEligible','confidence','moderationReason'],
+        },
+      },
+    });
+    const result = JSON.parse((response.text || '{}').trim());
+    const safeResult = {
+      ...result,
+      communityEligible: Boolean(result.communityEligible) && Boolean(result.readable) &&
+        !Boolean(result.containsPersonalData) && Boolean(result.originEvidence) &&
+        Boolean(result.copyrightIndicators && result.copyrightIndicators.toLowerCase().includes('public')),
+      confidence: Math.max(0, Math.min(1, Number(result.confidence) || 0)),
+      keywords: Array.isArray(result.keywords) ? result.keywords.filter((x: unknown) => typeof x === 'string').slice(0,30) : [],
+    };
+    return res.json({ classification: safeResult, automatedDecision: safeResult.communityEligible ? 'eligible_pending_rights_confirmation' : 'private_or_quarantined' });
+  } catch (err) {
+    console.error('Error in /api/ai/classify-document:', err);
+    return res.status(500).json({ error: 'Impossible de classifier le document.' });
   }
 });
 

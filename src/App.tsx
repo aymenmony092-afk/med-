@@ -8,6 +8,7 @@ import {
   ClipboardCheck,
   Download,
   FileQuestion,
+  FileUp,
   GraduationCap,
   Home,
   Layers,
@@ -17,6 +18,7 @@ import {
   Search,
   Settings,
   Sparkles,
+  MessageCircle,
   Stethoscope,
   Sun,
   WifiOff,
@@ -32,6 +34,9 @@ import { QCMRunner } from './components/QCMRunner';
 import { ResidanatEmdAnnalesViews } from './components/ResidanatEmdAnnalesViews';
 import { ClinicalCasesView, MedicalToolsView } from './components/ClinicalCasesAndToolsViews';
 import { SmartSummariesView } from './components/SmartSummariesView';
+import { AIStudyAssistantView } from './components/AIStudyAssistantView';
+import { ResidencyUniversityArchivesView } from './components/ResidencyUniversityArchivesView';
+import { DocumentsLibraryView } from './components/DocumentsLibraryView';
 import { CLINICAL_CASES } from './data/clinical_cases';
 import { MEDICAL_LESSONS } from './data/curriculum';
 import { CURATED_QCMS } from './data/qcm_index';
@@ -66,8 +71,10 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'qcm', label: 'Banque QCM', group: 'Principal', icon: FileQuestion },
   { id: 'emd', label: 'EMD', group: 'Principal', icon: ClipboardCheck },
   { id: 'annales', label: 'Annales et examens précédents', group: 'Principal', icon: Archive },
+  { id: 'documents', label: 'Mes documents & QCM IA', group: 'Principal', icon: FileUp },
   { id: 'cours', label: 'Cours médicaux', group: 'Principal', icon: BookOpen },
   { id: 'resumes', label: 'Résumés intelligents', group: 'Principal', icon: Sparkles },
+  { id: 'assistant-ia', label: 'Assistant IA médical', group: 'Principal', icon: MessageCircle },
   { id: 'cas-cliniques', label: 'Cas cliniques', group: 'Principal', icon: Stethoscope },
 
   // Années 1-7
@@ -118,6 +125,7 @@ export default function App() {
   const [activeSection, setActiveSection] = useState<SectionId>('accueil');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   // Persisted State
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
@@ -169,6 +177,8 @@ export default function App() {
         setNotifications(notifs);
       } catch (err) {
         console.error('MED DZ local storage hydration fallback:', err);
+      } finally {
+        if (mounted) setIsHydrated(true);
       }
     })();
     return () => {
@@ -464,6 +474,7 @@ export default function App() {
 
   const handleExportBackup = () => {
     const payload = {
+      schemaVersion: 1,
       exportedAt: new Date().toISOString(),
       app: 'MED DZ',
       settings,
@@ -473,6 +484,7 @@ export default function App() {
       favorites,
       aiNotes,
       customQuestions,
+      notifications,
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -481,6 +493,84 @@ export default function App() {
     a.download = `med-dz-sauvegarde-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleImportBackup = async (file: File) => {
+    try {
+      const parsed: unknown = JSON.parse(await file.text());
+      if (!parsed || typeof parsed !== 'object') {
+        throw new Error('Format de fichier invalide');
+      }
+      const backup = parsed as {
+        app?: string;
+        settings?: AppSettings;
+        progress?: UserProgressState;
+        sessions?: StudySessionRecord[];
+        wrongAnswers?: WrongAnswerEntry[];
+        favorites?: FavoriteEntry[];
+        aiNotes?: SavedAINote[];
+        customQuestions?: QCMQuestion[];
+        notifications?: ArabicNotificationLog[];
+      };
+
+      if (
+        backup.app !== 'MED DZ' ||
+        !backup.settings ||
+        !backup.progress ||
+        !Array.isArray(backup.sessions) ||
+        !Array.isArray(backup.wrongAnswers) ||
+        !Array.isArray(backup.favorites)
+      ) {
+        throw new Error('Cette sauvegarde MED DZ est incomplète ou incompatible');
+      }
+      if (
+        !['light', 'dark'].includes(backup.settings.theme) ||
+        !Array.isArray(backup.progress.dailyHistory) ||
+        !Array.isArray(backup.progress.completedLessonIds) ||
+        !Array.isArray(backup.progress.completedCaseIds)
+      ) {
+        throw new Error('Les données de profil ou de progression sont invalides');
+      }
+
+      if (
+        backup.sessions.some((item) => !item || typeof item.id !== 'string' || !Array.isArray(item.questionIds) || !item.answers || typeof item.answers !== 'object') ||
+        backup.wrongAnswers.some((item) => !item || typeof item.questionId !== 'string') ||
+        backup.favorites.some((item) => !item || typeof item.id !== 'string')
+      ) {
+        throw new Error('Certaines entrées de la sauvegarde sont invalides');
+      }
+
+      if (!window.confirm('La restauration remplacera les données locales actuelles de MED DZ. Continuer ?')) {
+        return;
+      }
+
+      const restored = {
+        settings: backup.settings,
+        progress: backup.progress,
+        sessions: backup.sessions,
+        wrongAnswers: backup.wrongAnswers,
+        favorites: backup.favorites,
+        aiNotes: Array.isArray(backup.aiNotes) ? backup.aiNotes : [],
+        customQuestions: Array.isArray(backup.customQuestions) ? backup.customQuestions : [],
+        notifications: Array.isArray(backup.notifications) ? backup.notifications : [],
+      };
+
+      await medDzDb.replaceAllData(restored);
+      setSettings(restored.settings);
+      setProgress(restored.progress);
+      setSessions(restored.sessions);
+      setWrongAnswers(restored.wrongAnswers);
+      setFavorites(restored.favorites);
+      setAiNotes(restored.aiNotes);
+      setCustomQuestions(restored.customQuestions);
+      setNotifications(restored.notifications);
+      setActiveSession(null);
+      setActiveArabicBanner(null);
+      window.alert('Sauvegarde MED DZ restaurée avec succès.');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Erreur inconnue';
+      window.alert(`Impossible de restaurer la sauvegarde : ${message}`);
+    }
   };
 
   const handleResetProgress = async () => {
@@ -576,7 +666,7 @@ export default function App() {
     );
   };
 
-  return (
+  return isHydrated ? (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex">
       {/* Desktop Sidebar */}
       <aside className="hidden lg:block w-[268px] shrink-0 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 sticky top-0 h-screen">
@@ -790,6 +880,8 @@ export default function App() {
               }}
               onToggleFavoriteNote={handleToggleFavoriteNote}
             />
+          ) : activeSection === 'assistant-ia' ? (
+            <AIStudyAssistantView />
           ) : activeSection === 'resumes' ? (
             <SmartSummariesView
               initialTopic={aiPrefill.topic}
@@ -807,10 +899,21 @@ export default function App() {
               favoriteIds={favoriteIds}
               onToggleFavoriteNote={handleToggleFavoriteNote}
             />
+          ) : activeSection === 'documents' ? (
+            <DocumentsLibraryView
+              onAddAIQuestions={async (qs) => {
+                setCustomQuestions((prev) => [...qs, ...prev]);
+                await medDzDb.saveCustomQuestions(qs);
+              }}
+            />
+          ) : activeSection === 'annales' ? (
+            <ResidencyUniversityArchivesView
+              allQuestions={allQuestions}
+              onStartSession={handleStartSession}
+            />
           ) : activeSection === 'residanat' ||
             activeSection === 'qcm' ||
-            activeSection === 'emd' ||
-            activeSection === 'annales' ? (
+            activeSection === 'emd' ? (
             <ResidanatEmdAnnalesViews
               mode={activeSection}
               allQuestions={allQuestions}
@@ -890,6 +993,7 @@ export default function App() {
               notifications={notifications}
               onTriggerArabicTestNotification={triggerArabicNotification}
               onExportBackup={handleExportBackup}
+              onImportBackup={handleImportBackup}
               onResetProgress={handleResetProgress}
               pwaInstall={pwaInstall}
               onNavigate={handleNavigate}
@@ -936,6 +1040,10 @@ export default function App() {
         onOpenArchives={() => handleNavigate('annales')}
         onOpenTools={() => handleNavigate('outils')}
       />
+    </div>
+  ) : (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-200 text-sm">
+      Chargement des données MED DZ...
     </div>
   );
 }

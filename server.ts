@@ -78,7 +78,7 @@ Exigences strictes :
 4. Fournis une réponse JSON structurée conforme au schéma demandé.`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-4-hydrogen',
+      model: 'gemini-3.8-flash',
       contents: prompt,
       config: {
         systemInstruction:
@@ -212,7 +212,7 @@ Consignes strictes :
 4. Structure la réponse exactement selon le schéma JSON demandé.`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-4-hydrogen',
+      model: 'gemini-3.8-flash',
       contents: prompt,
       config: {
         thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
@@ -273,7 +273,7 @@ Consignes strictes :
       ...parsed,
       lessonId,
       aiGenerated: true,
-      model: 'gemini-4-hydrogen',
+      model: 'gemini-3.8-flash',
       disclaimer:
         'Fiche de synthèse générée automatiquement par Gemini à partir du contenu du cours. Vérifiez toujours les conduites cliniques et posologies sur les référentiels officiels.',
     });
@@ -337,7 +337,7 @@ Règles strictes :
 - N'affirme JAMAIS que la question provient d'une annale d'examen réelle ou d'une année passée. Indique un ouvrage médical académique reconnu pertinent dans "reference".`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-4-hydrogen',
+      model: 'gemini-3.8-flash',
       contents: prompt,
       config: {
         systemInstruction:

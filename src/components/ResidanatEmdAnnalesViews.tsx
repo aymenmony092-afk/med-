@@ -136,7 +136,7 @@ export const ResidanatEmdAnnalesViews: React.FC<ResidanatEmdAnnalesViewsProps> =
   // 1. RÉSIDANAT HUB
   if (mode === 'residanat') {
     const curatedCount = allQuestions.filter((q) => q.sourceType === 'REFERENCE_PEDAGOGIQUE').length;
-    const archiveCount = allQuestions.filter((q) => q.sourceType === 'ARCHIVE_VERIFIEE' && (q.reference?.startsWith('https://') || q.reference?.startsWith('http://')) && Number.isInteger(q.examYear) && Number.isInteger(q.sourcePage) && (q.sourcePage ?? 0) > 0 && Boolean(q.university) && Boolean(q.sourceQuestionNumber?.trim())).length;
+    const archiveCount = allQuestions.filter((q) => q.sourceType === 'ARCHIVE_VERIFIEE' && (q.reference?.startsWith('https://') || q.reference?.startsWith('http://')) && ['Alger', 'Oran', 'Batna'].includes(q.university || '') && Number.isInteger(q.examYear) && Number(q.examYear) >= 2008 && Number(q.examYear) <= 2026 && Boolean(q.sourceDocumentTitle?.trim()) && Number.isInteger(q.sourcePage) && (q.sourcePage ?? 0) > 0 && Boolean(q.sourceQuestionNumber?.trim())).length;
     const aiCount = allQuestions.filter((q) => q.sourceType === 'IA_PEDAGOGIQUE').length;
 
     return (

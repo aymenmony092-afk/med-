@@ -119,7 +119,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
             {allQuestions.length} questions
           </p>
           <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
-            Annales originales vérifiées : {allQuestions.filter((q) => q.sourceType === 'ARCHIVE_VERIFIEE' && (q.reference?.startsWith('https://') || q.reference?.startsWith('http://')) && Boolean(q.university) && Number.isInteger(q.examYear) && Number.isInteger(q.sourcePage) && (q.sourcePage ?? 0) > 0 && Boolean(q.sourceQuestionNumber?.trim())).length}
+            Annales originales vérifiées : {allQuestions.filter((q) => q.sourceType === 'ARCHIVE_VERIFIEE' && (q.reference?.startsWith('https://') || q.reference?.startsWith('http://')) && ['Alger', 'Oran', 'Batna'].includes(q.university || '') && Number.isInteger(q.examYear) && Number(q.examYear) >= 2008 && Number(q.examYear) <= 2026 && Boolean(q.sourceDocumentTitle?.trim()) && Number.isInteger(q.sourcePage) && (q.sourcePage ?? 0) > 0 && Boolean(q.sourceQuestionNumber?.trim())).length}
           </p>
         </div>
         <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">

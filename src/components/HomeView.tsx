@@ -68,7 +68,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
               Plateforme Algérienne d’Études Médicales & Préparation au Résidanat
             </h1>
             <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl">
-              Révisez le programme complet de la 1ère à la 7ème année, entraînez-vous sur des QCM pédagogiques avec corrections détaillées et consultez les annales originales lorsque leurs sources sont documentées, et résolvez des cas cliniques hors-ligne.
+              Révisez le programme complet de la 1ère à la 7ème année avec des QCM pédagogiques corrigés, consultez les annales dont la provenance est documentée et entraînez-vous sur des cas cliniques hors-ligne.
             </p>
           </div>
 

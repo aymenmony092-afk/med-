@@ -42,6 +42,9 @@ jobs:
       - name: Type-check application
         run: npm run lint
 
+      - name: Validate medical question and archive data
+        run: npm run validate:data
+
       - name: Build web assets
         run: npm run build
 

@@ -29,6 +29,9 @@ const SOURCES: Record<University, Array<{ label: string; url: string; note: stri
     { label: 'Sujet Alger 2008 — PDF partagé sur Drive', url: 'https://drive.google.com/file/d/11bdqCd_NzE0dZXvqBefeIbQKyRbOGcTd/view?usp=drivesdk', note: 'Lien direct référencé par le canal ZED ; le contenu PDF et les pages restent à vérifier avant extraction.' },
     { label: 'Sujet Alger 2022 décembre — PDF partagé sur Drive', url: 'https://drive.google.com/file/d/108FtzaY5GJxLGVuZT4jKXLhpdcAxpspS/view?usp=drivesdk', note: 'Lien direct référencé par le canal ZED ; le contenu PDF et les pages restent à vérifier avant extraction.' },
     { label: 'Sujet Alger 2024 — PDF partagé sur Drive', url: 'https://drive.google.com/file/d/179apwaNABqLl0YypHChWbB4DRh7OjWQj/view?usp=drivesdk', note: 'Lien direct référencé par le canal ZED ; le contenu PDF et les pages restent à vérifier avant extraction.' },
+    { label: 'Résidanat Alger 2025 The_DR — canal Telegram', url: 'https://t.me/s/Residanat_2024', note: 'Canal animé par une résidente ; partage de drives, résumés et sources de préparation. Ressources utiles pour recherche, mais à ne pas confondre avec des sujets officiels.' },
+    { label: 'Sujets biologie + externat Alger 2025 — canal Telegram', url: 'https://t.me/s/focus2025exalg18', note: 'Piste communautaire avec un Drive et des liens vers des sujets ; vérifier la provenance de chaque document.' },
+    { label: 'Sujet Résidanat Alger 2023 — copie avec corrigé proposé', url: 'https://pdfcoffee.com/sujet-residanat-2023-corrige-propose-pdf-free.html', note: 'Copie téléversée par un utilisateur, annoncée comme session Alger octobre 2023 ; corrigé proposé non officiel et authenticité à contrôler avec une autre source.' },
   ],
 };
 

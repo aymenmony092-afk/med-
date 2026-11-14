@@ -254,6 +254,11 @@ export const PersonalViews: React.FC<PersonalViewsProps> = ({
                     </div>
                   </div>
                   <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{q.stem}</p>
+                  {err.lastSelectedIndex >= 0 && err.lastSelectedIndex < q.choices.length && (
+                    <p className="text-xs text-rose-700 dark:text-rose-400">
+                      Votre dernière réponse : {q.choices[err.lastSelectedIndex]}
+                    </p>
+                  )}
                   <p className="text-xs text-emerald-700 dark:text-emerald-400">
                     Réponse juste : {q.choices[q.correctIndex]}
                   </p>

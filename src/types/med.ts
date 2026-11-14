@@ -15,6 +15,7 @@ export type SectionId =
   | 'emd'
   | 'residanat'
   | 'annales'
+  | 'documents'
   | 'cas-cliniques'
   | 'outils'
   | 'favoris'
@@ -72,6 +73,7 @@ export interface QCMQuestion {
   sourceDocumentTitle?: string;
   sourcePage?: number;
   sourceQuestionNumber?: string;
+  sourceExcerpt?: string;
   correctionStatus?: 'OFFICIELLE' | 'VERIFIEE' | 'PROPOSEE' | 'NON_VERIFIEE';
   correctionReference?: string;
 }

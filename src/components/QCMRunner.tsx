@@ -369,6 +369,7 @@ export const QCMRunner: React.FC<QCMRunnerProps> = ({
                 <span aria-hidden="true">·</span>
                 <span className="font-semibold text-teal-700 dark:text-teal-300">
                   Annale vérifiée · p. {currentQuestion.sourcePage} · Q. {currentQuestion.sourceQuestionNumber}
+                  {currentQuestion.sourceDocumentTitle ? ` · ${currentQuestion.sourceDocumentTitle}` : ''}
                 </span>
               </>
             )}

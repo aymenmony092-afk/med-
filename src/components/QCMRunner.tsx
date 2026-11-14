@@ -56,40 +56,12 @@ export const QCMRunner: React.FC<QCMRunnerProps> = ({
       setLocalSession((prev) => {
         if (prev.completedAt) return prev;
         const nextRemaining = Math.max(0, prev.timerSecondsRemaining - 1);
-        if (nextRemaining === 0) {
-          // A timed exam must update the same learning statistics as a manual finish.
-          // In immediate-feedback mode answers were already recorded when selected.
-          if (!prev.immediateFeedback) {
-            for (const questionId of prev.questionIds) {
-              const question = questionsMap[questionId];
-              const selectedIndex = prev.answers[questionId];
-              if (question && selectedIndex !== undefined) {
-                onRecordAnswer(
-                  question,
-                  selectedIndex,
-                  selectedIndex === question.correctIndex,
-                  25
-                );
-              }
-            }
-          }
-          const score = computeScore(prev);
-          const finished: StudySessionRecord = {
-            ...prev,
-            timerSecondsRemaining: 0,
-            completedAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            scorePercent: score,
-          };
-          onUpdateSession(finished);
-          return finished;
-        }
         const updated = {
           ...prev,
           timerSecondsRemaining: nextRemaining,
           updatedAt: new Date().toISOString(),
         };
-        if (nextRemaining % 5 === 0) {
+        if (nextRemaining > 0 && nextRemaining % 5 === 0) {
           onUpdateSession(updated);
         }
         return updated;
@@ -103,6 +75,53 @@ export const QCMRunner: React.FC<QCMRunnerProps> = ({
     () => localSession.questionIds.map((id) => questionsMap[id]).filter(Boolean),
     [localSession.questionIds, questionsMap]
   );
+
+  // Finalize an expired timed session in an effect, not inside a React state
+  // updater. Updaters must stay pure because React may invoke them more than once.
+  useEffect(() => {
+    if (
+      localSession.completedAt ||
+      localSession.timerSecondsTotal <= 0 ||
+      localSession.timerSecondsRemaining > 0
+    ) {
+      return;
+    }
+
+    if (!localSession.immediateFeedback) {
+      for (const questionId of localSession.questionIds) {
+        const question = questionsMap[questionId];
+        const selectedIndex = localSession.answers[questionId];
+        if (question && selectedIndex !== undefined) {
+          onRecordAnswer(
+            question,
+            selectedIndex,
+            selectedIndex === question.correctIndex,
+            25
+          );
+        }
+      }
+    }
+
+    const finished: StudySessionRecord = {
+      ...localSession,
+      timerSecondsRemaining: 0,
+      completedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      scorePercent: computeScore(localSession),
+    };
+    setLocalSession(finished);
+    onUpdateSession(finished);
+  }, [
+    localSession.completedAt,
+    localSession.timerSecondsTotal,
+    localSession.timerSecondsRemaining,
+    localSession.immediateFeedback,
+    localSession.questionIds,
+    localSession.answers,
+    questionsMap,
+    onRecordAnswer,
+    onUpdateSession,
+  ]);
 
   function computeScore(s: StudySessionRecord): number {
     const qs = s.questionIds.map((id) => questionsMap[id]).filter(Boolean);

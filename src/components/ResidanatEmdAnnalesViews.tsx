@@ -150,7 +150,7 @@ export const ResidanatEmdAnnalesViews: React.FC<ResidanatEmdAnnalesViewsProps> =
                 Préparation Complète au Résidanat de Médecine
               </h1>
               <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                Banque vérifiée de <span className="font-mono font-semibold tabular-nums">{curatedCount}</span> QCM documentés couvrant 22 spécialités médicales, chirurgicales et fondamentales
+                Banque pédagogique de <span className="font-mono font-semibold tabular-nums">{curatedCount}</span> QCM référencés couvrant 22 spécialités médicales, chirurgicales et fondamentales
                 {aiCount > 0 ? ` (+ ${aiCount} QCM IA sauvegardés localement)` : ''}. Chaque question inclut une correction scientifique complète et l’analyse des distracteurs.
               </p>
             </div>
@@ -194,7 +194,7 @@ export const ResidanatEmdAnnalesViews: React.FC<ResidanatEmdAnnalesViewsProps> =
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-slate-100 dark:border-slate-800">
             <div>
-              <p className="text-xs text-slate-500 dark:text-slate-400">QCM vérifiés hors-ligne</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">QCM pédagogiques hors-ligne</p>
               <p className="text-xl font-bold font-mono tabular-nums text-slate-900 dark:text-slate-100">
                 {allQuestions.length}
               </p>
@@ -214,7 +214,7 @@ export const ResidanatEmdAnnalesViews: React.FC<ResidanatEmdAnnalesViewsProps> =
             <div>
               <p className="text-xs text-slate-500 dark:text-slate-400">Intégrité des sources</p>
               <p className="text-xs font-medium text-teal-700 dark:text-teal-400 mt-1">
-                Référentiels identifiés · Zéro source fabriquée
+                Questions pédagogiques séparées des annales officielles
               </p>
             </div>
           </div>
@@ -367,7 +367,7 @@ export const ResidanatEmdAnnalesViews: React.FC<ResidanatEmdAnnalesViewsProps> =
                 className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
               >
                 <option value="Toutes">Toutes les sources</option>
-                <option value="REFERENCE_PEDAGOGIQUE">Référentiels médicaux vérifiés</option>
+                <option value="REFERENCE_PEDAGOGIQUE">Questions pédagogiques avec références</option>
                 <option value="IA_PEDAGOGIQUE">Entraînement généré par IA</option>
               </select>
             </div>
@@ -547,7 +547,7 @@ export const ResidanatEmdAnnalesViews: React.FC<ResidanatEmdAnnalesViewsProps> =
                       EMD {spec}
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 font-mono tabular-nums mt-0.5">
-                      {qs.length} QCM vérifiés · Durée suggérée : {qs.length * 2} min
+                      {qs.length} QCM pédagogiques · Durée suggérée : {qs.length * 2} min
                     </p>
                   </div>
                   <div className="flex gap-2">
@@ -592,7 +592,7 @@ export const ResidanatEmdAnnalesViews: React.FC<ResidanatEmdAnnalesViewsProps> =
 
         <section className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-3">
           <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">
-            Séries EMD universitaires archivées
+            Séries pédagogiques EMD par programme et faculté
           </h2>
           <div className="divide-y divide-slate-100 dark:divide-slate-800">
             {emdArchives.map((rec) => (
@@ -654,10 +654,10 @@ export const ResidanatEmdAnnalesViews: React.FC<ResidanatEmdAnnalesViewsProps> =
       <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-            Annales et Examens Précédents (2002 – 2025)
+            Registre historique & séries pédagogiques (2002 – 2025)
           </h1>
           <p className="mt-1 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-            Registre historique organisé par année (2002–2025), faculté algérienne, spécialité et type d’épreuve. Par principe d’intégrité scientifique, les sessions dont l’épreuve officielle complète n’est pas disponible localement sont clairement marquées indisponibles sans jamais inventer de fausses questions.
+            Registre organisé par année, faculté et type d’épreuve. Les séries pédagogiques disponibles sont clairement distinguées des annales officielles : aucune série d’entraînement n’est présentée comme une copie réelle d’examen. Les sessions officielles non documentées restent indiquées comme indisponibles.
           </p>
         </div>
 
@@ -718,7 +718,9 @@ export const ResidanatEmdAnnalesViews: React.FC<ResidanatEmdAnnalesViewsProps> =
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
               {filteredArchives.map((rec) => {
-                const available = rec.availability === 'DISPONIBLE_SERIE_VERIFIEE';
+                const officialAvailable = rec.availability === 'ANNALE_OFFICIELLE_VERIFIEE';
+                const pedagogicalAvailable = rec.availability === 'SERIE_PEDAGOGIQUE';
+                const available = officialAvailable || pedagogicalAvailable;
                 return (
                   <tr key={rec.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/30">
                     <td className="py-3.5 px-4 font-mono tabular-nums font-semibold text-slate-900 dark:text-slate-100">
@@ -742,7 +744,7 @@ export const ResidanatEmdAnnalesViews: React.FC<ResidanatEmdAnnalesViewsProps> =
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-medium hover:bg-blue-700"
                         >
                           <BookMarked className="w-3.5 h-3.5" />
-                          Ouvrir la série
+                          {pedagogicalAvailable ? 'Ouvrir la série pédagogique' : 'Ouvrir l’annale officielle'}
                         </button>
                       ) : (
                         <span className="inline-flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">

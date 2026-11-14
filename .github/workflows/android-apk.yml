@@ -3,10 +3,18 @@ name: Build MED DZ Android APK
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches:
+      - main
+      - 'integration/**'
     paths:
       - 'package.json'
-      - 'capacitor.config.ts'
+      - 'src/**'
+      - 'scripts/**'
+      - 'android-assets/**'
+      - 'public/**'
+      - 'index.html'
+      - 'tsconfig.json'
+      - 'capacitor.config.json'
       - '.github/workflows/android-apk.yml'
 
 permissions:
@@ -17,15 +25,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22
 
       - name: Set up Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '21'
@@ -33,14 +41,26 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Type-check application
+        run: npm run lint
+
+      - name: Validate medical question and archive data
+        run: npm run validate:data
+
       - name: Build web assets
         run: npm run build
+
+      - name: Verify Capacitor configuration
+        run: npx cap config
 
       - name: Generate Android project
         run: npx cap add android
 
       - name: Sync Capacitor
         run: npx cap sync android
+
+      - name: Apply original MED DZ launcher branding
+        run: bash scripts/install-android-branding.sh
 
       - name: Build debug APK
         working-directory: android

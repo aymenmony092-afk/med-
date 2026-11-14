@@ -135,7 +135,9 @@ export const QCMRunner: React.FC<QCMRunnerProps> = ({
     setLocalSession(updated);
     onUpdateSession(updated);
 
-    if (!alreadyAnswered) {
+    // In exam mode, answers are scored once at final submission (or timeout).
+    // Recording here as well would double-count every answered question.
+    if (!alreadyAnswered && localSession.immediateFeedback) {
       onRecordAnswer(currentQuestion, choiceIdx, choiceIdx === currentQuestion.correctIndex, 25);
     }
   };

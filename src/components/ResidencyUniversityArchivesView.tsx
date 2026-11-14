@@ -66,7 +66,16 @@ export const ResidencyUniversityArchivesView: React.FC<Props> = ({ allQuestions,
   const [year, setYear] = useState(2026);
   const [search, setSearch] = useState('');
 
-  const verified = useMemo(() => allQuestions.filter((q) => q.sourceType === 'ARCHIVE_VERIFIEE' && q.reference?.trim()), [allQuestions]);
+  // A historical item is accepted only when its origin can be audited back to a
+  // concrete document, page and question number. A generic bibliography is not enough.
+  const verified = useMemo(() => allQuestions.filter((q) =>
+    q.sourceType === 'ARCHIVE_VERIFIEE' &&
+    /^https?:\\/\\//i.test(q.reference || '') &&
+    Boolean(q.university) &&
+    Number.isInteger(q.examYear) &&
+    Number.isInteger(q.sourcePage) && (q.sourcePage ?? 0) > 0 &&
+    Boolean(q.sourceQuestionNumber?.trim())
+  ), [allQuestions]);
   const selectedQuestions = useMemo(() => verified.filter((q) => q.university === university && q.examYear === year && (!search || q.stem.toLowerCase().includes(search.toLowerCase()))), [verified, university, year, search]);
 
   const repeatedGroups = useMemo(() => {
@@ -105,7 +114,7 @@ export const ResidencyUniversityArchivesView: React.FC<Props> = ({ allQuestions,
           </label>
           <div className="text-xs text-slate-600 dark:text-slate-300">
             <span className="font-medium">QCM originaux vérifiés — {university} {year}</span>
-            <div className="mt-1 rounded-lg border border-slate-200 dark:border-slate-700 p-3 text-sm">{selectedQuestions.length} question(s) intégrée(s) avec référence</div>
+            <div className="mt-1 rounded-lg border border-slate-200 dark:border-slate-700 p-3 text-sm">{selectedQuestions.length} question(s) intégrée(s) avec source, page et numéro vérifiés</div>
           </div>
         </div>
         <div className="relative">

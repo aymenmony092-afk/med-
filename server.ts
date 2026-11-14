@@ -597,6 +597,65 @@ app.post('/api/ai/document-chat', async (req, res) => {
   }
 });
 
+app.post('/api/ai/classify-document', async (req, res) => {
+  try {
+    const { fileName, mimeType, fileBase64 } = req.body as {
+      fileName?: string; mimeType?: string; fileBase64?: string;
+    };
+    const allowedTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/webp', 'text/plain'];
+    if (!fileName || typeof fileName !== 'string' || !fileBase64 || typeof fileBase64 !== 'string' ||
+        !mimeType || !allowedTypes.includes(mimeType)) {
+      return res.status(400).json({ error: 'Document invalide ou format non pris en charge.' });
+    }
+    if (fileBase64.length > 18_000_000) return res.status(413).json({ error: 'Document trop volumineux.' });
+    const ai = getGeminiClient();
+    if (!ai) return res.status(503).json({ error: 'Service Gemini non configuré sur le serveur.' });
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.8-flash',
+      contents: [{ role: 'user', parts: [
+        { text: 'Analyse ce document médical pour le catalogue MED DZ. Retourne uniquement les métadonnées visibles et fiables. Ne déduis jamais une université, une année ou un caractère officiel à partir du nom de fichier seul. Classe le type parmi course, summary, historical_exam, correction, qcm_series, book, other. historical_exam ne doit être attribué que si le document lui-même montre clairement qu’il s’agit d’un sujet d’examen passé. Évalue la lisibilité, détecte les données personnelles visibles et les indices de droits d’auteur ou de restriction. Un résultat IA ne constitue pas une preuve de droit de redistribution. Par défaut, communityEligible doit être false si les droits sont inconnus, si des données personnelles sont visibles, si le document est illisible ou si l’origine est incertaine. confidence entre 0 et 1. Les champs inconnus doivent être des chaînes vides. Fichier : ' + fileName.slice(0,180) },
+        { inlineData: { mimeType, data: fileBase64 } },
+      ] }],
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            title: { type: Type.STRING },
+            documentType: { type: Type.STRING, enum: ['course','summary','historical_exam','correction','qcm_series','book','other'] },
+            specialty: { type: Type.STRING },
+            university: { type: Type.STRING },
+            academicYear: { type: Type.STRING },
+            language: { type: Type.STRING },
+            keywords: { type: Type.ARRAY, items: { type: Type.STRING } },
+            readable: { type: Type.BOOLEAN },
+            containsPersonalData: { type: Type.BOOLEAN },
+            copyrightIndicators: { type: Type.STRING },
+            originEvidence: { type: Type.STRING },
+            communityEligible: { type: Type.BOOLEAN },
+            confidence: { type: Type.NUMBER },
+            moderationReason: { type: Type.STRING },
+          },
+          required: ['title','documentType','specialty','university','academicYear','language','keywords','readable','containsPersonalData','copyrightIndicators','originEvidence','communityEligible','confidence','moderationReason'],
+        },
+      },
+    });
+    const result = JSON.parse((response.text || '{}').trim());
+    const safeResult = {
+      ...result,
+      communityEligible: Boolean(result.communityEligible) && Boolean(result.readable) &&
+        !Boolean(result.containsPersonalData) && Boolean(result.originEvidence) &&
+        Boolean(result.copyrightIndicators && result.copyrightIndicators.toLowerCase().includes('public')),
+      confidence: Math.max(0, Math.min(1, Number(result.confidence) || 0)),
+      keywords: Array.isArray(result.keywords) ? result.keywords.filter((x: unknown) => typeof x === 'string').slice(0,30) : [],
+    };
+    return res.json({ classification: safeResult, automatedDecision: safeResult.communityEligible ? 'eligible_pending_rights_confirmation' : 'private_or_quarantined' });
+  } catch (err) {
+    console.error('Error in /api/ai/classify-document:', err);
+    return res.status(500).json({ error: 'Impossible de classifier le document.' });
+  }
+});
+
 async function startServer() {
   const portArgIdx = process.argv.indexOf('--port');
   const cliPort = portArgIdx !== -1 ? Number(process.argv[portArgIdx + 1]) : NaN;

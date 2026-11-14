@@ -10,6 +10,7 @@ export type SectionId =
   | 'annee-7'
   | 'cours'
   | 'resumes'
+  | 'assistant-ia'
   | 'qcm'
   | 'emd'
   | 'residanat'

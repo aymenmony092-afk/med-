@@ -19,6 +19,8 @@ const SOURCES: Record<University, Array<{ label: string; url: string; note: stri
     { label: 'BMset — préparation Résidanat Batna 2025', url: 'https://t.me/s/bmse_t/539', note: 'QCM corrigés annoncés comme sélectionnés du programme de 3e/4e année 2025. Ressource de préparation, pas une annale officielle démontrée.' },
   ],
   Oran: [
+    { label: 'Index public des sujets — Ency Education (Oran 2014–2022)', url: 'https://www.ency-education.net/medecine-residanat/1', note: 'Index public listant notamment Oran 2014, 2015, 2016, 2021 et 2022 avec liens vers les épreuves. Les fichiers doivent être ouverts et contrôlés page par page avant import.' },
+    { label: 'Catalogue des sujets Oran — MentorQCM', url: 'https://mentorqcm.com/qcm-residanat', note: 'La plateforme annonce six sessions Oran de mars 2021 à octobre 2025 et des QCM corrigés. C’est un catalogue secondaire payant/en ligne, pas une preuve documentaire autonome ; récupérer les sujets sources et vérifier leur provenance avant intégration.' },
     { label: 'Faculté de médecine Oran 1', url: 'https://facmed.univ-oran1.dz/', note: 'Site institutionnel de la faculté.' },
     { label: 'Sujets de Résidanat — 2014, 2016, 2021, 2022', url: 'https://sites.google.com/view/faculte-de-medecine-oran/accueil', note: 'Index de documents de sujets ; vérifier chaque fichier avant import.' },
     { label: 'Concours — Session octobre 2026', url: 'https://facmed.univ-oran1.dz/33-concours-d-acc%C3%A8s-au-r%C3%A9sidanat/901-concours-d-acc%C3%A8s-au-r%C3%A9sidanat%20session-octobre-2026.html', note: 'Page officielle de la session 2026 ; sujet complet non confirmé sur cette page.' },
@@ -35,6 +37,9 @@ const SOURCES: Record<University, Array<{ label: string; url: string; note: stri
     { label: 'Drykm-MEDICINE — ressources Résidanat Oran', url: 'https://t.me/s/drykm_medicine', note: 'Piste de collecte secondaire : relais de PDFs et ressources attribuées à Oran. Les banques thématiques et fiches de préparation ne sont pas automatiquement des annales.' },
   ],
   Alger: [
+    { label: 'Index public des sujets — Ency Education (Alger 2011–2022)', url: 'https://www.ency-education.net/medecine-residanat/1', note: 'Index public listant les sujets Alger 2011–2022, parfois séparés en dossiers cliniques, pathologie médico-chirurgicale et sciences fondamentales. Les liens d’archives doivent être ouverts et les pages contrôlées avant import.' },
+    { label: 'Sujet Résidanat Alger 2024 — copie PDF partagée sur Telegram', url: 'https://drive.google.com/file/d/12_sSUG5Tgp9y-Rb1njxUstXZoyCqKJvF/view?usp=drivesdk', note: 'Lien partagé dans un canal communautaire de préparation. Copie secondaire : authenticité, pagination et concordance avec le sujet de la faculté à vérifier avant toute extraction.' },
+    { label: 'Résidanat Alger 2024 — canal communautaire et fichiers associés', url: 'https://t.me/s/Residanat_Alger2024', note: 'Le canal contient des fichiers et renvoie à des dossiers de préparation. Distinguer les sujets du concours des cours, témoignages et supports pédagogiques.' },
     { label: 'Annales Résidanat — Faculté d’Alger', url: 'https://app.qsmqcs.com/residanat/alger', note: 'Index d’annales classées par année et épreuve.' },
     { label: 'Épreuves Résidanat Alger 2008', url: 'https://residanat-algerie.blogspot.com/2009/10/epreuves-2008-alger.html', note: 'Publication ancienne qui référence le sujet complet 2008 et ses parties.' },
     { label: 'Sujets de Résidanat — Alger', url: 'https://www.ency-education.net/medecine-residanat/1', note: 'Index d’épreuves historiques par année ; contrôler les fichiers sources.' },

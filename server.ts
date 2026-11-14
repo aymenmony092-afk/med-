@@ -407,9 +407,11 @@ Règles strictes :
 app.post('/api/ai/chat', async (req, res) => {
   try {
     const rawMessages = Array.isArray(req.body?.messages) ? req.body.messages : [];
-    const messages = rawMessages
+    const validMessages = rawMessages
       .filter((item: any) => item && (item.role === 'user' || item.role === 'assistant') && typeof item.content === 'string')
-      .slice(-12)
+      .slice(-12);
+    while (validMessages.length && validMessages[0].role === 'assistant') validMessages.shift();
+    const messages = validMessages
       .map((item: any) => ({ role: item.role === 'assistant' ? 'model' : 'user', parts: [{ text: item.content.slice(0, 12000) }] }));
 
     if (!messages.length || messages[messages.length - 1].role !== 'user') {

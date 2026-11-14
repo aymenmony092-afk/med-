@@ -4,7 +4,7 @@ import type { QCMQuestion } from '../types/med';
 import { medDzDb } from '../db/medDzDb';
 import { DocumentDiscussionPanel } from './DocumentDiscussionPanel';
 
-type StoredDocument = { id: string; name: string; mimeType: string; size: number; addedAt: string; blob: Blob };
+type StoredDocument = { id: string; name: string; mimeType: string; size: number; addedAt: string; blob: Blob; classification?: { title: string; documentType: string; specialty: string; university: string; academicYear: string; language: string; keywords: string[]; confidence: number; moderationReason: string; communityEligible: boolean } };
 
 interface Props { onAddAIQuestions: (questions: QCMQuestion[]) => Promise<void>; }
 
@@ -47,7 +47,28 @@ export const DocumentsLibraryView: React.FC<Props> = ({ onAddAIQuestions }) => {
     await medDzDb.saveDocument(doc);
     setSelectedId(doc.id);
     await refresh();
-    setMessage('Document enregistré sur cet appareil. Il reste disponible hors connexion.');
+    setMessage('Document enregistré localement. Analyse et classification automatiques en cours…');
+    try {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ''));
+        reader.onerror = () => reject(new Error('Lecture du fichier impossible.'));
+        reader.readAsDataURL(file);
+      });
+      const response = await fetch('/api/ai/classify-document', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileName: file.name, mimeType: file.type, fileBase64: dataUrl.split(',')[1] || '' }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Classification indisponible.');
+      const classified = { ...doc, classification: result.classification };
+      await medDzDb.saveDocument(classified);
+      await refresh();
+      setMessage('Document enregistré et classé par Gemini. Il reste privé sur cet appareil : la publication collective nécessite une base centrale, une identité de compte et la vérification des droits.');
+    } catch (err) {
+      setMessage('Document enregistré localement. La classification IA sera à relancer lorsque le service Gemini sera disponible.');
+      setError(err instanceof Error ? err.message : 'Classification indisponible.');
+    }
   };
 
   const remove = async (doc: StoredDocument) => {
@@ -112,7 +133,7 @@ export const DocumentsLibraryView: React.FC<Props> = ({ onAddAIQuestions }) => {
           <FileText className="h-5 w-5 shrink-0 text-blue-600" />
           <button className="min-w-0 flex-1 text-left" onClick={() => setSelectedId(doc.id)}>
             <span className="block truncate text-sm font-semibold text-slate-800 dark:text-slate-100">{doc.name}</span>
-            <span className="text-xs text-slate-500">{(doc.size / 1024 / 1024).toFixed(2)} Mo · {new Date(doc.addedAt).toLocaleDateString('fr-FR')}</span>
+            <span className="text-xs text-slate-500">{(doc.size / 1024 / 1024).toFixed(2)} Mo · {new Date(doc.addedAt).toLocaleDateString('fr-FR')}{doc.classification ? ` · ${doc.classification.documentType} · ${doc.classification.specialty || 'Spécialité inconnue'}` : ' · Non classé'}</span>
           </button>
           <a className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800" href={URL.createObjectURL(doc.blob)} download={doc.name} aria-label="Télécharger"><Download className="h-4 w-4" /></a>
           <button className="rounded-lg p-2 text-rose-500 hover:bg-rose-50" onClick={() => void remove(doc)} aria-label="Supprimer"><Trash2 className="h-4 w-4" /></button>

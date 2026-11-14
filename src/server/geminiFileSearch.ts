@@ -157,6 +157,7 @@ export function registerGeminiFileSearchRoutes(app: Express): void {
         return res.status(202).json({
           indexed: false,
           pending: true,
+          operationName: operation.name || null,
           message: 'L’indexation prend plus de temps que prévu. Vérifiez l’état avant de relancer pour éviter les doublons.',
         });
       }
@@ -174,6 +175,23 @@ export function registerGeminiFileSearchRoutes(app: Express): void {
       return res.status(502).json({ error: 'Échec de l’indexation Gemini. Le fichier original doit rester conservé séparément.' });
     } finally {
       if (tempDir) await rm(tempDir, { recursive: true, force: true }).catch(() => undefined);
+    }
+  });
+
+  app.get('/api/admin/library/index-status', async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    const operationName = typeof req.query.operationName === 'string' ? req.query.operationName : '';
+    if (!operationName.startsWith('operations/')) {
+      return res.status(400).json({ error: 'Identifiant d’opération invalide.' });
+    }
+    const ai = getClient();
+    if (!ai) return res.status(503).json({ error: 'GEMINI_API_KEY non configurée.' });
+    try {
+      const operation = await ai.operations.get({ operation: { name: operationName } as any });
+      return res.json({ done: Boolean(operation.done), failed: Boolean((operation as any).error) });
+    } catch (err) {
+      console.error('MED DZ File Search operation status failed:', err);
+      return res.status(502).json({ error: 'Impossible de vérifier cette opération Gemini.' });
     }
   });
 

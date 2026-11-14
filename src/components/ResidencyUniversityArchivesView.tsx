@@ -75,7 +75,7 @@ export const ResidencyUniversityArchivesView: React.FC<Props> = ({ allQuestions,
   // concrete document, page and question number. A generic bibliography is not enough.
   const verified = useMemo(() => allQuestions.filter((q) =>
     q.sourceType === 'ARCHIVE_VERIFIEE' &&
-    (q.reference?.startsWith('https://') || q.reference?.startsWith('http://')) &&
+    Boolean(q.reference?.trim()) &&
     UNIVERSITIES.includes(q.university as University) &&
     Number.isInteger(q.examYear) && Number(q.examYear) >= 2008 && Number(q.examYear) <= 2026 &&
     Boolean(q.sourceDocumentTitle?.trim()) &&
@@ -109,7 +109,7 @@ export const ResidencyUniversityArchivesView: React.FC<Props> = ({ allQuestions,
       <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 space-y-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Annales originales du Résidanat (2008–2026)</h1>
-          <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">Cette bibliothèque accepte uniquement les QCM extraits d’un sujet source vérifiable. Chaque question doit conserver sa faculté, son année et sa référence documentaire. Aucun QCM généré par IA n’est présenté comme une annale.</p>
+          <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">Cette bibliothèque accepte uniquement les QCM extraits d’un sujet source vérifiable. Chaque question doit conserver sa faculté, son année, le titre du document, sa page et son numéro de question. Les documents sont gérés dans la bibliothèque interne, sans catalogue de liens externes. Aucun QCM généré par IA n’est présenté comme une annale.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           {UNIVERSITIES.map((item) => <button key={item} onClick={() => setUniversity(item)} className={`rounded-lg px-4 py-2 text-sm font-semibold ${university === item ? 'bg-blue-600 text-white' : 'border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200'}`}>Université de {item}</button>)}
@@ -138,17 +138,10 @@ export const ResidencyUniversityArchivesView: React.FC<Props> = ({ allQuestions,
         {repeatedGroups.length ? <div className="space-y-3">{repeatedGroups.map((group) => <article key={group.key} className="rounded-xl border border-slate-200 dark:border-slate-700 p-3">
           <div className="flex flex-wrap items-center justify-between gap-2"><span className="text-xs font-semibold text-blue-700 dark:text-blue-300">{group.questions.length} occurrences détectées</span><span className="text-xs text-slate-500">{group.years.join(' · ')} | {group.universities.join(', ')}</span></div>
           <p className="mt-2 text-sm text-slate-800 dark:text-slate-100">{group.questions[0].stem}</p>
-          <div className="mt-2 flex flex-wrap gap-2">{group.questions.map((q) => <a key={q.id} href={q.reference} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-md bg-slate-100 dark:bg-slate-800 px-2 py-1 text-xs text-blue-700 dark:text-blue-300">{q.university} {q.examYear} <ExternalLink className="h-3 w-3" /></a>)}</div>
+          <div className="mt-2 flex flex-wrap gap-2">{group.questions.map((q) => <span key={q.id} className="rounded-md bg-slate-100 dark:bg-slate-800 px-2 py-1 text-xs text-slate-700 dark:text-slate-300">{q.university} {q.examYear} · p.{q.sourcePage}</span>)}</div>
         </article>)}</div> : <p className="rounded-lg bg-slate-50 dark:bg-slate-800 p-3 text-sm text-slate-600 dark:text-slate-300">Aucune répétition vérifiable détectée pour le moment. هذا لا يعني أن الأسئلة لم تتكرر؛ يعني فقط أن قاعدة الأسئلة الأصلية لم تُملأ بعد بما يكفي لإجراء المقارنة.</p>}
       </section>
 
-      <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-3">
-        <h2 className="font-semibold text-slate-900 dark:text-slate-100">Sources documentaires — {university}</h2>
-        {SOURCES[university].map((source) => <div key={source.url} className="flex items-start justify-between gap-3 border-b border-slate-100 dark:border-slate-800 py-3 last:border-0">
-          <div><p className="text-sm font-medium text-slate-800 dark:text-slate-100">{source.label}</p><p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{source.note}</p></div>
-          <a href={source.url} target="_blank" rel="noreferrer" className="shrink-0 inline-flex items-center gap-1 text-xs font-semibold text-blue-600 dark:text-blue-400">Ouvrir <ExternalLink className="h-3 w-3" /></a>
-        </div>)}
-      </section>
 
       <p className="flex items-start gap-2 text-xs text-slate-500 dark:text-slate-400"><AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /> Les archives publiques trouvées ne couvrent pas encore toutes les sessions 2008–2026, notamment pour Batna. Les questions manquantes ne seront pas inventées. Les corrections doivent être vérifiées séparément de l’énoncé original.</p>
     </div>

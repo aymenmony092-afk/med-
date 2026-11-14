@@ -126,7 +126,7 @@ export const DocumentsLibraryView: React.FC<Props> = ({ onAddAIQuestions }) => {
           <input value={specialty} onChange={(e) => setSpecialty(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-sm" />
         </label>
         <label className="text-xs font-medium text-slate-600 dark:text-slate-300">Nombre de QCM
-          <select value={count} onChange={(e) => setCount(Number(e.target.value))} className="mt-1 w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-sm">{[3,5,8,10].map((n) => <option key={n} value={n}>{n}</option>)}</select>
+          <input type="number" min={1} max={100} value={count} onChange={(e) => setCount(Math.min(100, Math.max(1, Number(e.target.value) || 1)))} className="mt-1 w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-sm" /><span className="mt-1 block text-[11px] text-slate-500">De 1 à 100 questions, selon le contenu exploitable.</span>
         </label>
       </div>
       <button disabled={!selected || loading} onClick={() => void generate()} className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50">

@@ -140,6 +140,19 @@ export const DocumentsLibraryView: React.FC<Props> = ({ onAddAIQuestions }) => {
         </div>)}</div>}
     </section>
 
+    {selected?.classification && <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-3">
+      <h2 className="font-semibold text-slate-900 dark:text-slate-100">Classification automatique Gemini</h2>
+      <div className="grid gap-2 sm:grid-cols-2 text-sm">
+        <p><span className="text-slate-500">Type :</span> {selected.classification.documentType}</p>
+        <p><span className="text-slate-500">Spécialité :</span> {selected.classification.specialty || 'Non déterminée'}</p>
+        <p><span className="text-slate-500">Université :</span> {selected.classification.university || 'Non déterminée'}</p>
+        <p><span className="text-slate-500">Année :</span> {selected.classification.academicYear || 'Non déterminée'}</p>
+        <p><span className="text-slate-500">Langue :</span> {selected.classification.language || 'Non déterminée'}</p>
+        <p><span className="text-slate-500">Confiance IA :</span> {(selected.classification.confidence * 100).toFixed(0)}%</p>
+      </div>
+      {!!selected.classification.keywords.length && <p className="text-xs text-slate-500">Mots-clés : {selected.classification.keywords.join(' · ')}</p>}
+      <p className="rounded-lg bg-amber-50 dark:bg-amber-950/30 p-3 text-xs text-amber-800 dark:text-amber-200">{selected.classification.moderationReason || 'La classification IA est indicative. Le document reste privé.'}</p>
+    </section>}
     <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 space-y-4">
       <div className="flex items-center gap-2"><Sparkles className="h-5 w-5 text-blue-600" /><h2 className="font-semibold text-slate-900 dark:text-slate-100">Créer des QCM à partir du document</h2></div>
       <p className="text-sm text-slate-600 dark:text-slate-300">Gemini analyse le fichier sélectionné et produit des questions nouvelles fondées sur son contenu. Les QCM générés restent distincts des annales historiques.</p>

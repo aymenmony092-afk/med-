@@ -3,6 +3,7 @@ import { FileText, FileUp, Trash2, Download, Sparkles, Loader2, BookOpen, AlertC
 import type { QCMQuestion } from '../types/med';
 import { medDzDb } from '../db/medDzDb';
 import { DocumentDiscussionPanel } from './DocumentDiscussionPanel';
+import { GeminiLibrarySearchPanel } from './GeminiLibrarySearchPanel';
 
 type StoredDocument = { id: string; name: string; mimeType: string; size: number; addedAt: string; blob: Blob; classification?: { title: string; documentType: string; specialty: string; university: string; academicYear: string; language: string; keywords: string[]; confidence: number; moderationReason: string; communityEligible: boolean } };
 
@@ -127,6 +128,8 @@ export const DocumentsLibraryView: React.FC<Props> = ({ onAddAIQuestions }) => {
       </label>
       <p className="text-xs text-slate-500 dark:text-slate-400">Les fichiers sont conservés localement sur cet appareil. Pour analyser un document avec Gemini, son contenu est envoyé au service IA configuré sur le serveur.</p>
     </section>
+
+    <GeminiLibrarySearchPanel />
 
     {error && <div className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{error}</div>}
     {message && <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{message}</div>}

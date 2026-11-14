@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { FileText, FileUp, Trash2, Download, Sparkles, Loader2, BookOpen, AlertCircle } from 'lucide-react';
 import type { QCMQuestion } from '../types/med';
 import { medDzDb } from '../db/medDzDb';
+import { DocumentDiscussionPanel } from './DocumentDiscussionPanel';
 
 type StoredDocument = { id: string; name: string; mimeType: string; size: number; addedAt: string; blob: Blob };
 
@@ -135,5 +136,7 @@ export const DocumentsLibraryView: React.FC<Props> = ({ onAddAIQuestions }) => {
       {selected && <p className="text-xs text-slate-500">Document sélectionné : {selected.name}</p>}
       <p className="flex items-start gap-2 text-xs text-amber-700 dark:text-amber-300"><AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /> Les réponses générées doivent être relues et validées par rapport au document et aux références médicales. Une page source est indiquée lorsque Gemini peut la repérer.</p>
     </section>
+
+    <DocumentDiscussionPanel document={selected ? { name: selected.name, mimeType: selected.mimeType, blob: selected.blob } : undefined} />
   </div>;
 };

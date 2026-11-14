@@ -150,7 +150,7 @@ export const ResidanatEmdAnnalesViews: React.FC<ResidanatEmdAnnalesViewsProps> =
                 Préparation Complète au Résidanat de Médecine
               </h1>
               <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                Banque vérifiée de <span className="font-mono font-semibold tabular-nums">{curatedCount}</span> QCM documentés couvrant 22 spécialités médicales, chirurgicales et fondamentales
+                Banque pédagogique de <span className="font-mono font-semibold tabular-nums">{curatedCount}</span> QCM référencés couvrant 22 spécialités médicales, chirurgicales et fondamentales
                 {aiCount > 0 ? ` (+ ${aiCount} QCM IA sauvegardés localement)` : ''}. Chaque question inclut une correction scientifique complète et l’analyse des distracteurs.
               </p>
             </div>
@@ -194,7 +194,7 @@ export const ResidanatEmdAnnalesViews: React.FC<ResidanatEmdAnnalesViewsProps> =
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-slate-100 dark:border-slate-800">
             <div>
-              <p className="text-xs text-slate-500 dark:text-slate-400">QCM vérifiés hors-ligne</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">QCM pédagogiques hors-ligne</p>
               <p className="text-xl font-bold font-mono tabular-nums text-slate-900 dark:text-slate-100">
                 {allQuestions.length}
               </p>

@@ -9,11 +9,15 @@ const YEARS = Array.from({ length: 19 }, (_, index) => 2026 - index);
 const SOURCES: Record<University, Array<{ label: string; url: string; note: string }>> = {
   Batna: [
     { label: 'Faculté de médecine — Université Batna 2', url: 'https://med-fac.univ-batna2.dz/', note: 'Site institutionnel de la faculté.' },
+    { label: 'Préparation officielle du concours — 2021', url: 'https://med-fac.univ-batna2.dz/news/pr%C3%A9paration-au-concours-de-r%C3%A9sidanat?page=1', note: 'Publication institutionnelle sur l’organisation du concours 2021, sans sujet QCM joint.' },
     { label: 'Document institutionnel — concours 2023', url: 'https://med-fac.univ-batna2.dz/sites/default/files/medecine-fac/files/concours_de_residanat_session_2023_1.pdf', note: 'Avis officiel sur la session 2023 (ce PDF n’est pas le sujet QCM complet).' },
     { label: 'Catalogue de la Bibliothèque centrale', url: 'https://pmb.univ-batna.dz/opac_bcu/index.php?id=100&l_typdoc=&lvl=categ_see&nbr_lignes=2637&page=18', note: 'Références bibliographiques de médecine et annales disponibles en bibliothèque.' },
   ],
   Oran: [
     { label: 'Faculté de médecine Oran 1', url: 'https://facmed.univ-oran1.dz/', note: 'Site institutionnel de la faculté.' },
+    { label: 'Concours — Session octobre 2026', url: 'https://facmed.univ-oran1.dz/33-concours-d-acc%C3%A8s-au-r%C3%A9sidanat/901-concours-d-acc%C3%A8s-au-r%C3%A9sidanat%20session-octobre-2026.html', note: 'Page officielle de la session 2026 et de ses documents administratifs ; le sujet QCM complet n’y est pas confirmé.' },
+    { label: 'Concours — Session octobre 2025', url: 'https://facmed.univ-oran1.dz/plus/evenements/658-concours-d-acc%C3%A8s-au-r%C3%A9sidanat.html', note: 'Page officielle avec consignes et documents du concours 2025.' },
+    { label: 'Concours — Session octobre 2024', url: 'https://facmed.univ-oran1.dz/plus/evenements/8-facmed/529-concours-d%E2%80%99acc%C3%A8s-au-session-octobre-2025-r%C3%A9sidanat.html', note: 'Page officielle du concours 2024 et annexe administrative.' },
     { label: 'Règlement du concours — Oran', url: 'https://facmed.univ-oran1.dz/images/Reglement_int%C3%A9rieur_du_concours_de_r%C3%A9sidanatK.pdf', note: 'Règlement officiel, pas un sujet QCM.' },
     { label: 'Catalogue DZ Residency', url: 'https://www.dz-residency.com/', note: 'Catalogue externe d’épreuves annoncées par faculté et année.' },
   ],

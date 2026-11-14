@@ -348,6 +348,14 @@ export const QCMRunner: React.FC<QCMRunnerProps> = ({
             <span>Difficulté : {currentQuestion.difficulty}</span>
             <span aria-hidden="true">·</span>
             <span>{currentQuestion.sourceLabel}</span>
+            {currentQuestion.sourceType === 'ARCHIVE_VERIFIEE' && currentQuestion.sourcePage && currentQuestion.sourceQuestionNumber && (
+              <>
+                <span aria-hidden="true">·</span>
+                <span className="font-semibold text-teal-700 dark:text-teal-300">
+                  Annale vérifiée · p. {currentQuestion.sourcePage} · Q. {currentQuestion.sourceQuestionNumber}
+                </span>
+              </>
+            )}
           </div>
 
           <div className="flex items-center gap-2">

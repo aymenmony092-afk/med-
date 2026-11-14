@@ -70,7 +70,7 @@ export const ResidencyUniversityArchivesView: React.FC<Props> = ({ allQuestions,
   // concrete document, page and question number. A generic bibliography is not enough.
   const verified = useMemo(() => allQuestions.filter((q) =>
     q.sourceType === 'ARCHIVE_VERIFIEE' &&
-    /^https?:\\/\\//i.test(q.reference || '') &&
+    (q.reference?.startsWith('https://') || q.reference?.startsWith('http://')) &&
     Boolean(q.university) &&
     Number.isInteger(q.examYear) &&
     Number.isInteger(q.sourcePage) && (q.sourcePage ?? 0) > 0 &&

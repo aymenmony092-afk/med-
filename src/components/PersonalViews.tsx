@@ -4,6 +4,7 @@ import {
   Bookmark,
   CheckCircle2,
   Download,
+  Upload,
   Moon,
   Play,
   RotateCcw,
@@ -40,6 +41,7 @@ interface PersonalViewsProps {
   notifications: ArabicNotificationLog[];
   onTriggerArabicTestNotification: (category: ArabicNotificationLog['category']) => void;
   onExportBackup: () => void;
+  onImportBackup: (file: File) => Promise<void>;
   onResetProgress: () => void;
   pwaInstall: {
     isInstallable: boolean;
@@ -75,6 +77,7 @@ export const PersonalViews: React.FC<PersonalViewsProps> = ({
   notifications,
   onTriggerArabicTestNotification,
   onExportBackup,
+  onImportBackup,
   onResetProgress,
   pwaInstall,
   onNavigate,
@@ -743,6 +746,20 @@ export const PersonalViews: React.FC<PersonalViewsProps> = ({
               <Download className="w-4 h-4" />
               Exporter mes données hors-ligne (JSON)
             </button>
+            <label className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer">
+              <Upload className="w-4 h-4" />
+              Importer une sauvegarde (JSON)
+              <input
+                type="file"
+                accept=".json,application/json"
+                className="sr-only"
+                onChange={(event) => {
+                  const file = event.currentTarget.files?.[0];
+                  if (file) void onImportBackup(file);
+                  event.currentTarget.value = '';
+                }}
+              />
+            </label>
           </div>
 
           <div>

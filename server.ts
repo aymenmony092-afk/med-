@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-app.use(express.json({ limit: '2mb' }));
+app.use(express.json({ limit: '22mb' }));
 
 function getGeminiClient(): GoogleGenAI | null {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -408,6 +408,100 @@ Règles strictes :
   }
 });
 
+
+
+app.post('/api/ai/generate-qcm-from-document', async (req, res) => {
+  try {
+    const { fileName, mimeType, fileBase64, count, specialty } = req.body as {
+      fileName?: string; mimeType?: string; fileBase64?: string; count?: number; specialty?: string;
+    };
+    const allowedTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/webp', 'text/plain'];
+    if (!fileName || typeof fileName !== 'string' || !fileBase64 || typeof fileBase64 !== 'string' ||
+        !mimeType || !allowedTypes.includes(mimeType)) {
+      return res.status(400).json({ error: 'Format non pris en charge. Importez un PDF, une image ou un fichier TXT.' });
+    }
+    if (fileBase64.length > 18_000_000) {
+      return res.status(413).json({ error: 'Fichier trop volumineux. La limite actuelle est de 13 Mo environ.' });
+    }
+    const ai = getGeminiClient();
+    if (!ai) {
+      return res.status(503).json({ error: 'Service IA indisponible : la clé serveur GEMINI_API_KEY n’est pas configurée.' });
+    }
+    const safeCount = Math.min(Math.max(Number(count) || 5, 1), 10);
+    const chosenSpecialty = typeof specialty === 'string' && specialty.trim() ? specialty.trim().slice(0, 80) : 'Médecine générale';
+    const safeName = fileName.slice(0, 180);
+    const prompt = `Tu es un professeur de médecine et concepteur de QCM pour le Résidanat algérien.
+Analyse le document joint intitulé "${safeName}" et crée exactement ${safeCount} QCM d'entraînement STRICTEMENT fondés sur son contenu.
+Spécialité : ${chosenSpecialty}.
+
+RÈGLES IMPÉRATIVES :
+- Ne complète pas avec des faits absents du document si cela change la réponse attendue.
+- Chaque QCM contient exactement 5 propositions A à E et une seule bonne réponse.
+- Fournis une explication pédagogique et explique pourquoi les autres propositions sont fausses.
+- Si le document est un sujet d'examen, ne présente pas les nouvelles questions comme des questions historiques copiées : ce sont des QCM générés à partir du document.
+- Pour chaque question, indique le numéro de page PDF si tu peux le déterminer. Pour une image ou un texte sans pagination, laisse sourcePage à 0.
+- Si le document est illisible ou ne contient pas assez de matière médicale, retourne un tableau vide plutôt que d'inventer.
+- Réponds en français médical clair.`;
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.8-flash',
+      contents: [{ role: 'user', parts: [
+        { text: prompt },
+        { inlineData: { mimeType, data: fileBase64 } },
+      ] }],
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              stem: { type: Type.STRING },
+              choices: { type: Type.ARRAY, items: { type: Type.STRING } },
+              correctIndex: { type: Type.INTEGER },
+              explanation: { type: Type.STRING },
+              incorrectExplanations: { type: Type.STRING },
+              sourcePage: { type: Type.INTEGER },
+              sourceExcerpt: { type: Type.STRING },
+            },
+            required: ['stem', 'choices', 'correctIndex', 'explanation', 'incorrectExplanations'],
+          },
+        },
+      },
+    });
+    const parsed = JSON.parse((response.text || '[]').trim()) as Array<{
+      stem: string; choices: string[]; correctIndex: number; explanation: string;
+      incorrectExplanations: string; sourcePage?: number; sourceExcerpt?: string;
+    }>;
+    const questions = (Array.isArray(parsed) ? parsed : [])
+      .filter((q) => q && typeof q.stem === 'string' && q.stem.trim() &&
+        Array.isArray(q.choices) && q.choices.length === 5 &&
+        q.choices.every((choice) => typeof choice === 'string' && choice.trim()) &&
+        Number.isInteger(q.correctIndex) && q.correctIndex >= 0 && q.correctIndex <= 4 &&
+        typeof q.explanation === 'string' && q.explanation.trim())
+      .map((q, index) => ({
+        id: `DOC-IA-${Date.now()}-${index + 1}`,
+        specialty: chosenSpecialty,
+        yearLevel: 'Résidanat' as const,
+        stem: q.stem,
+        choices: q.choices as [string, string, string, string, string],
+        correctIndex: q.correctIndex,
+        explanation: q.explanation,
+        incorrectExplanations: q.incorrectExplanations || '',
+        difficulty: 'Moyen' as const,
+        sourceType: 'IA_PEDAGOGIQUE' as const,
+        sourceLabel: `QCM généré par IA depuis le document importé : ${safeName}`,
+        sourceDocumentTitle: safeName,
+        sourcePage: Number.isInteger(q.sourcePage) && Number(q.sourcePage) > 0 ? Number(q.sourcePage) : undefined,
+        sourceExcerpt: typeof q.sourceExcerpt === 'string' ? q.sourceExcerpt.slice(0, 500) : undefined,
+        reference: `Document utilisateur : ${safeName} (QCM généré par IA, non annale originale)`,
+        correctionStatus: 'NON_VERIFIEE' as const,
+      }));
+    return res.json({ questions, generatedCount: questions.length, aiGenerated: true });
+  } catch (err) {
+    console.error('Error in /api/ai/generate-qcm-from-document:', err);
+    return res.status(500).json({ error: 'Impossible d’analyser ce document. Vérifiez sa lisibilité puis réessayez.' });
+  }
+});
 
 app.post('/api/ai/chat', async (req, res) => {
   try {

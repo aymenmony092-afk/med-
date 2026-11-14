@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Bookmark,
   CheckCircle2,
@@ -43,6 +43,7 @@ export const QCMRunner: React.FC<QCMRunnerProps> = ({
 }) => {
   const [localSession, setLocalSession] = useState<StudySessionRecord>(session);
   const [showNavGrid, setShowNavGrid] = useState(false);
+  const timeoutFinalizedRef = useRef<string | null>(null);
 
   useEffect(() => {
     setLocalSession(session);
@@ -82,10 +83,14 @@ export const QCMRunner: React.FC<QCMRunnerProps> = ({
     if (
       localSession.completedAt ||
       localSession.timerSecondsTotal <= 0 ||
-      localSession.timerSecondsRemaining > 0
+      localSession.timerSecondsRemaining > 0 ||
+      timeoutFinalizedRef.current === localSession.id
     ) {
       return;
     }
+
+    // Protect against repeated effect execution (including Strict Mode remounts).
+    timeoutFinalizedRef.current = localSession.id;
 
     if (!localSession.immediateFeedback) {
       for (const questionId of localSession.questionIds) {

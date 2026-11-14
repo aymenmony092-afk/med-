@@ -10,7 +10,7 @@ import type {
 } from '../types/med';
 
 const DB_NAME = 'med_dz_offline_db';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 export const DEFAULT_SETTINGS: AppSettings = {
   theme: 'light',
@@ -66,6 +66,9 @@ function openDatabase(): Promise<IDBDatabase> {
       }
       if (!db.objectStoreNames.contains('notifications')) {
         db.createObjectStore('notifications', { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains('documents')) {
+        db.createObjectStore('documents', { keyPath: 'id' });
       }
     };
     request.onsuccess = () => resolve(request.result);
@@ -261,6 +264,10 @@ export const medDzDb = {
       await putStoreItem('customQuestions', q);
     }
   },
+
+  getDocuments: () => getAllStore<{ id: string; name: string; mimeType: string; size: number; addedAt: string; blob: Blob }>('documents'),
+  saveDocument: (document: { id: string; name: string; mimeType: string; size: number; addedAt: string; blob: Blob }) => putStoreItem('documents', document),
+  deleteDocument: (id: string) => deleteStoreItem('documents', id),
 
   getNotifications: async (): Promise<ArabicNotificationLog[]> => {
     const list = await getAllStore<ArabicNotificationLog>('notifications');

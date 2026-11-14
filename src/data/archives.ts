@@ -185,7 +185,8 @@ export const HISTORICAL_ARCHIVES: HistoricalExamRecord[] = [
     questionCount: 0,
     availability: 'INDISPONIBLE_LOCALEMENT' as const,
     linkedQuestionIds: [] as string[],
-    sourceNote:
-      'Session répertoriée dans l’index public Ency Education (https://www.ency-education.net/medecine-residanat/1). Le fichier source original doit être ouvert et vérifié avant extraction ; aucune question ni pagination n’est supposée.',
+    sourceNote: item.year === 2026 && item.university === 'Constantine'
+      ? 'PDF consulté : https://www.ency-education.net/_files/ugd/414868_6e1fffbc5cb04e8f92dca104f1c70290.pdf?index=true — la page de garde confirme le concours du 17 octobre 2026 et 150 questions ; le fichier compte 21 pages. Les questions ne sont pas encore intégrées au QCM hors-ligne et doivent être extraites puis contrôlées individuellement.'
+      : 'Session répertoriée dans l’index public Ency Education (https://www.ency-education.net/medecine-residanat/1). Le fichier source original doit être ouvert et vérifié avant extraction ; aucune question ni pagination n’est supposée.',
   })),
 ];

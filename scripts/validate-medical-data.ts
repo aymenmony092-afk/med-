@@ -3,6 +3,7 @@ import { CURATED_QCMS } from '../src/data/qcm_index';
 
 const errors: string[] = [];
 const questionIds = new Set<string>();
+const questionsById = new Map(CURATED_QCMS.map((question) => [question.id, question]));
 
 for (const question of CURATED_QCMS) {
   if (questionIds.has(question.id)) errors.push(`Duplicate QCM id: ${question.id}`);
@@ -32,6 +33,20 @@ for (const archive of HISTORICAL_ARCHIVES) {
 
   for (const id of archive.linkedQuestionIds) {
     if (!questionIds.has(id)) errors.push(`Archive ${archive.id} links missing QCM ${id}.`);
+  }
+
+  if (archive.availability === 'ANNALE_OFFICIELLE_VERIFIEE') {
+    for (const id of archive.linkedQuestionIds) {
+      const question = questionsById.get(id);
+      if (
+        !question ||
+        question.sourceType !== 'ARCHIVE_VERIFIEE' ||
+        question.examYear !== archive.year ||
+        question.university !== archive.university
+      ) {
+        errors.push(`Official archive ${archive.id} has a question without matching verified year, university, and source metadata: ${id}.`);
+      }
+    }
   }
 
   if (

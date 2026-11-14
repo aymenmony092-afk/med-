@@ -127,15 +127,18 @@ export function registerGeminiFileSearchRoutes(app: Express): void {
       await writeFile(tempPath, bytes);
 
       const fields = metadata || {};
-      const customMetadata = [
+      const metadataPairs: Array<[string, unknown]> = [
         ['med_dz_type', fields.documentType],
         ['specialty', fields.specialty],
         ['university', fields.university],
         ['academic_year', fields.academicYear],
         ['language', fields.language],
         ['rights_basis', fields.rightsBasis],
-      ].filter((entry) => typeof entry[1] === 'string' && String(entry[1]).trim())
-        .map(([key, value]) => ({ key, stringValue: String(value).slice(0, 200) }));
+      ];
+      const customMetadata: Array<{ key: string; stringValue: string }> = metadataPairs
+        .flatMap(([key, value]) => typeof value === 'string' && value.trim()
+          ? [{ key, stringValue: value.trim().slice(0, 200) }]
+          : []);
 
       let operation = await ai.fileSearchStores.uploadToFileSearchStore({
         file: tempPath,

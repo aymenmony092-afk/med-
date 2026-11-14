@@ -11,17 +11,24 @@ const SOURCES: Record<University, Array<{ label: string; url: string; note: stri
     { label: 'Faculté de médecine — Université Batna 2', url: 'https://med-fac.univ-batna2.dz/', note: 'Source institutionnelle à consulter pour les annonces et documents.' },
     { label: 'Catalogue de la Bibliothèque centrale de Batna', url: 'https://pmb.univ-batna.dz/opac_bcu/index.php?id=100&l_typdoc=&lvl=categ_see&nbr_lignes=2637&page=18', note: 'Référence à des recueils imprimés d’annales ; les sujets numériques 2008–2026 restent à collecter et vérifier.' },
     { label: 'Préparation officielle du concours — 2021', url: 'https://med-fac.univ-batna2.dz/news/pr%C3%A9paration-au-concours-de-r%C3%A9sidanat?page=1', note: 'Publication institutionnelle relative à l’organisation du concours.' },
+    { label: 'BMset — canal Résidanat Batna', url: 'https://t.me/s/bmse_t/499', note: 'Piste communautaire : annonce de QCM corrigés de préparation ciblant le système digestif. Ce post ne prouve pas qu’il s’agit d’une annale officielle ; ne pas importer comme sujet historique.' },
   ],
   Oran: [
     { label: 'Faculté de médecine Oran 1', url: 'https://facmed.univ-oran1.dz/', note: 'Site institutionnel de la faculté.' },
     { label: 'Sujets de Résidanat — 2014, 2016, 2021, 2022', url: 'https://sites.google.com/view/faculte-de-medecine-oran/accueil', note: 'Index de documents de sujets ; vérifier chaque fichier avant import.' },
     { label: 'Concours — Session octobre 2026', url: 'https://facmed.univ-oran1.dz/33-concours-d-acc%C3%A8s-au-r%C3%A9sidanat/901-concours-d-acc%C3%A8s-au-r%C3%A9sidanat%20session-octobre-2026.html', note: 'Page officielle de la session 2026 ; sujet complet non confirmé sur cette page.' },
     { label: 'Règlement intérieur du concours', url: 'https://facmed.univ-oran1.dz/images/Reglement_int%C3%A9rieur_du_concours_de_r%C3%A9sidanat.pdf', note: 'Règlement officiel, pas une annale.' },
+    { label: 'Résidanat Oran — canal Telegram communautaire', url: 'https://t.me/s/residanat_oran', note: 'Piste de collecte : publications contenant des liens Drive de sujets récents et de banques thématiques. Vérifier chaque PDF, sa faculté et son année avant import.' },
+    { label: 'Drykm-MEDICINE — ressources Résidanat Oran', url: 'https://t.me/s/drykm_medicine', note: 'Piste de collecte secondaire : relais de PDFs et ressources attribuées à Oran. Les banques thématiques et fiches de préparation ne sont pas automatiquement des annales.' },
   ],
   Alger: [
     { label: 'Annales Résidanat — Faculté d’Alger', url: 'https://app.qsmqcs.com/residanat/alger', note: 'Index d’annales classées par année et épreuve.' },
     { label: 'Épreuves Résidanat Alger 2008', url: 'https://residanat-algerie.blogspot.com/2009/10/epreuves-2008-alger.html', note: 'Publication ancienne qui référence le sujet complet 2008 et ses parties.' },
     { label: 'Sujets de Résidanat — Alger', url: 'https://www.ency-education.net/medecine-residanat/1', note: 'Index d’épreuves historiques par année ; contrôler les fichiers sources.' },
+    { label: 'ZED Résidanat Alger — index Telegram des sujets 2002–2024', url: 'https://t.me/s/ZED_RSD_ALG', note: 'Le canal publie un index de liens Drive pour les sujets Alger 2002–2024, dont 2008, 2022 (février et décembre), 2023 et 2024. Chaque fichier doit être ouvert et contrôlé individuellement avant import.' },
+    { label: 'Sujet Alger 2008 — PDF partagé sur Drive', url: 'https://drive.google.com/file/d/11bdqCd_NzE0dZXvqBefeIbQKyRbOGcTd/view?usp=drivesdk', note: 'Lien direct référencé par le canal ZED ; le contenu PDF et les pages restent à vérifier avant extraction.' },
+    { label: 'Sujet Alger 2022 décembre — PDF partagé sur Drive', url: 'https://drive.google.com/file/d/108FtzaY5GJxLGVuZT4jKXLhpdcAxpspS/view?usp=drivesdk', note: 'Lien direct référencé par le canal ZED ; le contenu PDF et les pages restent à vérifier avant extraction.' },
+    { label: 'Sujet Alger 2024 — PDF partagé sur Drive', url: 'https://drive.google.com/file/d/179apwaNABqLl0YypHChWbB4DRh7OjWQj/view?usp=drivesdk', note: 'Lien direct référencé par le canal ZED ; le contenu PDF et les pages restent à vérifier avant extraction.' },
   ],
 };
 

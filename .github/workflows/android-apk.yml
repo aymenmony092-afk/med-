@@ -9,6 +9,7 @@ on:
     paths:
       - 'package.json'
       - 'src/**'
+      - 'scripts/**'
       - 'public/**'
       - 'index.html'
       - 'tsconfig.json'

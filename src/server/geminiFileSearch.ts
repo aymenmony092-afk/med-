@@ -1,6 +1,7 @@
 import type { Express, Request, Response } from 'express';
 import { GoogleGenAI } from '@google/genai';
 import { timingSafeEqual } from 'node:crypto';
+import { Buffer } from 'node:buffer';
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';

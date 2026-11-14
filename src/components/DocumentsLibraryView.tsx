@@ -28,6 +28,31 @@ export const DocumentsLibraryView: React.FC<Props> = ({ onAddAIQuestions }) => {
 
   useEffect(() => { void refresh(); }, []);
 
+  const classifyDocument = async (doc: StoredDocument) => {
+    setError('');
+    setMessage('Analyse et classification automatiques en cours…');
+    try {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ''));
+        reader.onerror = () => reject(new Error('Lecture du fichier impossible.'));
+        reader.readAsDataURL(doc.blob);
+      });
+      const response = await fetch('/api/ai/classify-document', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileName: doc.name, mimeType: doc.mimeType, fileBase64: dataUrl.split(',')[1] || '' }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Classification indisponible.');
+      await medDzDb.saveDocument({ ...doc, classification: result.classification });
+      await refresh();
+      setMessage('Document classé par Gemini. Il reste privé sur cet appareil : la publication collective nécessite une base centrale, une identité de compte et la vérification des droits.');
+    } catch (err) {
+      setMessage('Le document est conservé localement. Vous pouvez relancer sa classification lorsque le service Gemini sera disponible.');
+      setError(err instanceof Error ? err.message : 'Classification indisponible.');
+    }
+  };
+
   const upload = async (file?: File) => {
     if (!file) return;
     setError(''); setMessage('');
@@ -47,28 +72,8 @@ export const DocumentsLibraryView: React.FC<Props> = ({ onAddAIQuestions }) => {
     await medDzDb.saveDocument(doc);
     setSelectedId(doc.id);
     await refresh();
-    setMessage('Document enregistré localement. Analyse et classification automatiques en cours…');
-    try {
-      const dataUrl = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(String(reader.result || ''));
-        reader.onerror = () => reject(new Error('Lecture du fichier impossible.'));
-        reader.readAsDataURL(file);
-      });
-      const response = await fetch('/api/ai/classify-document', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fileName: file.name, mimeType: file.type, fileBase64: dataUrl.split(',')[1] || '' }),
-      });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || 'Classification indisponible.');
-      const classified = { ...doc, classification: result.classification };
-      await medDzDb.saveDocument(classified);
-      await refresh();
-      setMessage('Document enregistré et classé par Gemini. Il reste privé sur cet appareil : la publication collective nécessite une base centrale, une identité de compte et la vérification des droits.');
-    } catch (err) {
-      setMessage('Document enregistré localement. La classification IA sera à relancer lorsque le service Gemini sera disponible.');
-      setError(err instanceof Error ? err.message : 'Classification indisponible.');
-    }
+    setMessage('Document enregistré localement.');
+    await classifyDocument(doc);
   };
 
   const remove = async (doc: StoredDocument) => {
@@ -139,6 +144,11 @@ export const DocumentsLibraryView: React.FC<Props> = ({ onAddAIQuestions }) => {
           <button className="rounded-lg p-2 text-rose-500 hover:bg-rose-50" onClick={() => void remove(doc)} aria-label="Supprimer"><Trash2 className="h-4 w-4" /></button>
         </div>)}</div>}
     </section>
+
+    {selected && !selected.classification && <section className="rounded-2xl border border-amber-200 dark:border-amber-900 bg-amber-50/60 dark:bg-amber-950/20 p-4 space-y-2">
+      <p className="text-sm text-amber-800 dark:text-amber-200">Ce document n’a pas encore été classé par Gemini.</p>
+      <button onClick={() => void classifyDocument(selected)} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">Relancer la classification IA</button>
+    </section>}
 
     {selected?.classification && <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-3">
       <h2 className="font-semibold text-slate-900 dark:text-slate-100">Classification automatique Gemini</h2>

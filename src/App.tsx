@@ -122,6 +122,7 @@ export default function App() {
   const [activeSection, setActiveSection] = useState<SectionId>('accueil');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   // Persisted State
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
@@ -173,6 +174,8 @@ export default function App() {
         setNotifications(notifs);
       } catch (err) {
         console.error('MED DZ local storage hydration fallback:', err);
+      } finally {
+        if (mounted) setIsHydrated(true);
       }
     })();
     return () => {
@@ -660,7 +663,7 @@ export default function App() {
     );
   };
 
-  return (
+  return isHydrated ? (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex">
       {/* Desktop Sidebar */}
       <aside className="hidden lg:block w-[268px] shrink-0 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 sticky top-0 h-screen">
@@ -1027,6 +1030,10 @@ export default function App() {
         onOpenArchives={() => handleNavigate('annales')}
         onOpenTools={() => handleNavigate('outils')}
       />
+    </div>
+  ) : (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-200 text-sm">
+      Chargement des données MED DZ...
     </div>
   );
 }
